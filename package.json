@@ -2,6 +2,7 @@
   "name": "hexaco-test-poc",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.11.1",
   "type": "module",
   "scripts": {
     "validate:data": "node scripts/validate-test-data.mjs",
@@ -20,5 +21,10 @@
   "devDependencies": {
     "@types/react": "^19.2.17",
     "@types/react-dom": "^19.2.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   }
 }
