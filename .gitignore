@@ -10,3 +10,9 @@ dev-server.err.log
 *.tsbuildinfo
 .env
 .env.*
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
