@@ -8,8 +8,9 @@
     "validate:data": "node scripts/validate-test-data.mjs",
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1",
-    "serve:dist": "node scripts/serve-dist.mjs"
+    "preview": "pnpm run build && wrangler dev",
+    "serve:dist": "node scripts/serve-dist.mjs",
+    "deploy": "pnpm run build && wrangler deploy"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -19,8 +20,10 @@
     "vite": "^7.0.0"
   },
   "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.45.0",
     "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "wrangler": "^4.111.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
