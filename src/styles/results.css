@@ -34,6 +34,30 @@
   color: var(--muted);
 }
 
+.results-header__date {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.storage-notice {
+  margin: 18px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #b9ddd4;
+  border-radius: 8px;
+  color: var(--teal-dark);
+  background: #eef8f5;
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.storage-notice--error {
+  border-color: #edc2bd;
+  color: var(--red);
+  background: #fff3f1;
+}
+
 .results-header__completion {
   display: flex;
   flex: 0 0 auto;

@@ -6,6 +6,7 @@
 
 - `App.tsx` は画面の組み立てだけを担当する
 - 回答状態と画面遷移は `useAssessment` に集約する
+- 診断履歴は `historyStorage` を介してブラウザーの `localStorage` に保存する
 - 採点は React に依存しない純粋関数として実装する
 - UI は役割単位の小さな関数コンポーネントに分ける
 - スタイルは基盤、診断、結果、レスポンシブに分ける
@@ -60,6 +61,7 @@ App
 
 - 採点規則を変える: `scoring.ts`
 - 回答や画面遷移を変える: `useAssessment.ts`
+- 履歴の保存形式や件数上限を変える: `historyStorage.ts`
 - 診断画面を変える: `DiagnosisScreen.tsx` と `diagnosis.css`
 - 結果表示を変える: `ResultsScreen.tsx`、`ScoreCards.tsx`、`results.css`
 - 質問や基準値を変える: `data/test-definitions.json`

@@ -2,7 +2,7 @@ import type { Norm, TestId } from "../../data/tests";
 
 export type Answers = Record<number, number>;
 export type AnswersByTest = Record<TestId, Answers>;
-export type AssessmentScreen = "diagnosis" | "results";
+export type AssessmentScreen = "diagnosis" | "results" | "history";
 
 export type FacetScore = {
   id: string;
@@ -23,6 +23,14 @@ export type DomainScore = {
   norm?: Norm;
   z?: number;
   facets: FacetScore[];
+};
+
+export type AssessmentHistoryEntry = {
+  id: string;
+  testId: TestId;
+  testLabel: string;
+  completedAt: string;
+  scores: DomainScore[];
 };
 
 export type EvaluationTone = "high" | "average" | "low";

@@ -13,6 +13,15 @@
     flex-direction: column;
   }
 
+  .app-header__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .history-link {
+    justify-content: space-between;
+  }
+
   .test-selector {
     width: 100%;
     min-width: 0;
@@ -23,6 +32,10 @@
   }
 
   .results-list__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .history-list {
     grid-template-columns: 1fr;
   }
 
@@ -39,7 +52,8 @@
   .app-header,
   .assessment-status,
   .question-card,
-  .results-view {
+  .results-view,
+  .history-view {
     padding: 16px;
   }
 
@@ -57,13 +71,15 @@
 
   .assessment-status__actions,
   .results-header,
-  .results-view__actions {
+  .results-view__actions,
+  .history-header {
     align-items: stretch;
     flex-direction: column;
   }
 
   .assessment-status__actions > .button,
-  .results-view__actions > .button {
+  .results-view__actions > .button,
+  .history-header > .button {
     width: 100%;
   }
 
@@ -114,6 +130,18 @@
 
   .results-header__completion {
     align-self: flex-start;
+  }
+
+  .history-card__scores {
+    grid-template-columns: 1fr;
+  }
+
+  .history-card__actions .button {
+    flex: 1 1 0;
+  }
+
+  .history-footer .button {
+    width: 100%;
   }
 
   .results-list {

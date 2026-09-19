@@ -7,15 +7,31 @@ type ResultsScreenProps = {
 };
 
 export function ResultsScreen({ assessment }: ResultsScreenProps) {
-  const { activeTest, scores, completeDomainCount, reviewAnswers, resetAssessment } = assessment;
+  const {
+    resultView,
+    completeDomainCount,
+    historyError,
+    reviewAnswers,
+    resetAssessment,
+    showHistory,
+  } = assessment;
+  const { testLabel, scores, completedAt, isHistory } = resultView;
+  const completedAtLabel = completedAt
+    ? new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(
+        new Date(completedAt),
+      )
+    : null;
 
   return (
     <section className="view results-view" aria-labelledby="results-heading">
       <div className="results-header">
         <div>
-          <span className="status-pill">集計完了</span>
-          <h2 id="results-heading">診断結果</h2>
-          <p>{activeTest.label}の因子と下位尺度の5段階平均です。</p>
+          <span className="status-pill">{isHistory ? "保存済み" : "集計完了"}</span>
+          <h2 id="results-heading">{isHistory ? "過去の診断結果" : "診断結果"}</h2>
+          <p>
+            {testLabel}の因子と下位尺度の5段階平均です。
+            {completedAtLabel && <span className="results-header__date">実施日時: {completedAtLabel}</span>}
+          </p>
         </div>
         <div className="results-header__completion" aria-label={`${completeDomainCount}因子を集計`}>
           <strong>{completeDomainCount}</strong>
@@ -23,7 +39,13 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
         </div>
       </div>
 
-      <AiPromptBuilder testLabel={activeTest.label} scores={scores} />
+      {!isHistory && (
+        <p className={historyError ? "storage-notice storage-notice--error" : "storage-notice"} role="status">
+          {historyError ?? "この結果は、このブラウザのローカルストレージに保存されました。"}
+        </p>
+      )}
+
+      <AiPromptBuilder testLabel={testLabel} scores={scores} />
 
       <section className="results-list" aria-label="因子と下位尺度のスコア">
         <h3>因子と下位尺度</h3>
@@ -35,12 +57,25 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
       </section>
 
       <div className="results-view__actions">
-        <button type="button" className="button button--secondary" onClick={reviewAnswers}>
-          回答を見直す
-        </button>
-        <button type="button" className="button button--primary" onClick={resetAssessment}>
-          もう一度診断する
-        </button>
+        {isHistory ? (
+          <>
+            <button type="button" className="button button--secondary" onClick={showHistory}>
+              履歴一覧に戻る
+            </button>
+            <button type="button" className="button button--primary" onClick={resetAssessment}>
+              新しく診断する
+            </button>
+          </>
+        ) : (
+          <>
+            <button type="button" className="button button--secondary" onClick={reviewAnswers}>
+              回答を見直す
+            </button>
+            <button type="button" className="button button--primary" onClick={resetAssessment}>
+              もう一度診断する
+            </button>
+          </>
+        )}
       </div>
 
       <p className="source-note">

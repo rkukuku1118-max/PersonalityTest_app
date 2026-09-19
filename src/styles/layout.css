@@ -11,7 +11,8 @@
 .app-header,
 .assessment-status,
 .question-card,
-.results-view {
+.results-view,
+.history-view {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--surface);
@@ -38,6 +39,43 @@
   margin-bottom: 0;
   font-size: 2rem;
   line-height: 1.18;
+}
+
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.history-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 13px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--teal-dark);
+  background: #ffffff;
+  cursor: pointer;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.history-link:hover {
+  background: #eef8f5;
+}
+
+.history-link span {
+  display: grid;
+  min-width: 23px;
+  height: 23px;
+  padding: 0 5px;
+  place-items: center;
+  border-radius: 999px;
+  color: #ffffff;
+  background: var(--teal);
+  font-size: 0.72rem;
 }
 
 .test-selector {

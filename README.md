@@ -153,6 +153,10 @@ pnpm.cmd run dev
 - 5つのテーマから、診断結果を含むAI向けプロンプトを作成・コピーする
 - 「あなたの取扱説明書」では、共有用画像を生成するためのプロンプトを作成する
 - 結果から診断画面へ戻って回答を見直す
+- 完了した診断結果をブラウザー内へ最大50件保存する
+- 診断履歴から過去の結果を表示・削除する
+
+診断履歴には集計済みスコアと実施日時だけを保存し、個々の設問への回答は保存しません。データはサーバーへ送信されず、別のブラウザーや端末には同期されません。ブラウザーのサイトデータを消去すると履歴も削除されます。
 
 表示する主な尺度は、誠実さ・謙虚さ、情動性、外向性、協調性、勤勉性、開放性です。100問版では利他性も表示します。
 
@@ -169,6 +173,7 @@ pnpm.cmd run dev
 - `src/App.tsx`: 画面コンポーネントの組み立て
 - `src/features/assessment/useAssessment.ts`: 回答状態と画面遷移
 - `src/features/assessment/scoring.ts`: 採点と評価の純粋関数
+- `src/features/assessment/historyStorage.ts`: 診断履歴の検証とローカル保存
 - `src/features/assessment/components/`: 診断・結果画面の表示
 - `src/styles/`: 基盤、各画面、レスポンシブのスタイル
 - `src/data/test-definitions.json`: 質問、採点キー、基準値

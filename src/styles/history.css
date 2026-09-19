@@ -1,0 +1,136 @@
+.history-view {
+  padding: 24px;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.history-header h2 {
+  margin: 14px 0 5px;
+  font-size: 1.8rem;
+  line-height: 1.25;
+}
+
+.history-header p,
+.history-empty p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.history-privacy-note {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 8px;
+  color: #4b5563;
+  background: var(--surface-soft);
+  font-size: 0.82rem;
+}
+
+.history-empty {
+  padding: 64px 20px;
+  text-align: center;
+}
+
+.history-empty h3 {
+  margin-bottom: 7px;
+}
+
+.history-empty .button {
+  margin-top: 20px;
+}
+
+.history-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.history-card {
+  min-width: 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: #fbfcfa;
+}
+
+.history-card__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 13px;
+  border-bottom: 1px solid #e7ebe5;
+}
+
+.history-card__heading h3 {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+}
+
+.history-card__heading time {
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.history-card__heading > span {
+  flex: 0 0 auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  color: var(--teal-dark);
+  background: #e1f3ef;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.history-card__scores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 14px;
+  margin: 14px 0 0;
+}
+
+.history-card__scores div {
+  display: flex;
+  min-width: 0;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.history-card__scores dt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.history-card__scores dd {
+  margin: 0;
+  color: var(--teal-dark);
+  font-size: 0.82rem;
+  font-weight: 850;
+}
+
+.history-card__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid #e7ebe5;
+}
+
+.history-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 22px;
+  padding-top: 20px;
+  border-top: 1px solid var(--line);
+}
