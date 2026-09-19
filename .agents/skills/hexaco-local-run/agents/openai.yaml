@@ -1,0 +1,4 @@
+interface:
+  display_name: "HEXACO Local Run"
+  short_description: "Run this repository's HEXACO app locally"
+  default_prompt: "Use $hexaco-local-run to start this repository's HEXACO app locally, verify it, and open it in a browser."

@@ -1,0 +1,115 @@
+.question-card {
+  width: min(900px, 100%);
+  margin: 18px auto 0;
+  padding: 24px;
+}
+
+.question-card__meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.question-card h2 {
+  min-height: 6.2rem;
+  margin: 18px 0 22px;
+  font-size: 1.55rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.answer-list {
+  display: grid;
+  gap: 10px;
+}
+
+.answer-option {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 60px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink);
+  background: #fbfcfa;
+  cursor: pointer;
+  text-align: left;
+}
+
+.answer-option:hover,
+.answer-option:focus-visible {
+  border-color: var(--teal);
+  outline: none;
+}
+
+.answer-option.is-selected {
+  border-color: var(--teal);
+  background: #e9f5f1;
+}
+
+.answer-option span:last-child {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.answer-option__number {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: #ffffff;
+  background: #2f3a44;
+  font-weight: 850;
+}
+
+.answer-option.is-selected .answer-option__number {
+  background: var(--teal);
+}
+
+.question-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.question-navigation__dots {
+  display: grid;
+  flex: 1;
+  grid-template-columns: repeat(auto-fill, minmax(12px, 1fr));
+  gap: 5px;
+  min-width: 0;
+}
+
+.question-navigation__dots button {
+  width: 100%;
+  aspect-ratio: 1;
+  min-width: 8px;
+  border-radius: 50%;
+  background: #d8ddd4;
+  cursor: pointer;
+}
+
+.question-navigation__dots button.is-answered {
+  background: #9dc7bd;
+}
+
+.question-navigation__dots button.is-current {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+
+.question-card__utilities {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}

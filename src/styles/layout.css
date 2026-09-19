@@ -1,0 +1,178 @@
+.app-shell {
+  min-height: 100vh;
+  padding: 28px;
+}
+
+.workspace {
+  width: min(1240px, 100%);
+  margin: 0 auto;
+}
+
+.app-header,
+.assessment-status,
+.question-card,
+.results-view {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 22px;
+}
+
+.app-header__eyebrow {
+  margin: 0 0 5px;
+  color: var(--teal);
+  font-size: 0.76rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.app-header h1 {
+  margin-bottom: 0;
+  font-size: 2rem;
+  line-height: 1.18;
+}
+
+.test-selector {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(92px, 1fr));
+  gap: 6px;
+  min-width: 220px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-soft);
+}
+
+.test-selector__option {
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 6px;
+  color: var(--muted);
+  background: transparent;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.test-selector__option.is-active {
+  color: #ffffff;
+  background: var(--teal);
+}
+
+.view {
+  margin-top: 14px;
+  animation: view-enter 220ms ease-out;
+}
+
+@keyframes view-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.assessment-status {
+  display: grid;
+  grid-template-columns: auto minmax(180px, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+}
+
+.assessment-status__value {
+  display: block;
+  font-size: 1.25rem;
+  font-weight: 850;
+}
+
+.assessment-status__label {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.assessment-status__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.progress-bar,
+.score-bar {
+  overflow: hidden;
+  height: 10px;
+  border-radius: 999px;
+  background: #e7ece4;
+}
+
+.progress-bar span,
+.score-bar span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--teal);
+  transition: width 180ms ease;
+}
+
+.button {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.button--primary {
+  color: #ffffff;
+  background: var(--teal);
+}
+
+.button--primary:hover {
+  background: var(--teal-dark);
+}
+
+.button--secondary {
+  color: var(--ink);
+  background: #e9ece6;
+}
+
+.button--ghost {
+  color: var(--teal);
+  background: #e9f5f1;
+}
+
+.button--danger {
+  color: var(--red);
+  background: #fae9e7;
+}
+
+.button:disabled,
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.source-note {
+  margin: 16px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .view {
+    animation: none;
+  }
+}
