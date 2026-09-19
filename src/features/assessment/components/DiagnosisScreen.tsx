@@ -14,11 +14,13 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
     questionCount,
     progress,
     isComplete,
+    activeDraftState,
     answerCurrentQuestion,
     goToPreviousQuestion,
     goToNextQuestion,
     goToQuestion,
     jumpToNextMissing,
+    saveDraft,
     showResults,
     resetAssessment,
   } = assessment;
@@ -108,6 +110,33 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
         </div>
 
         <div className="question-card__utilities">
+          <div className="draft-controls">
+            <button
+              type="button"
+              className="button button--secondary"
+              onClick={saveDraft}
+              disabled={answeredCount === 0 || (!activeDraftState.isDirty && Boolean(activeDraftState.savedAt))}
+            >
+              途中保存
+            </button>
+            <p
+              className={activeDraftState.error ? "draft-status is-error" : "draft-status"}
+              role="status"
+            >
+              {activeDraftState.error
+                ? activeDraftState.error
+                : activeDraftState.isDirty && activeDraftState.savedAt
+                  ? "保存後に変更があります"
+                  : activeDraftState.savedAt
+                    ? `保存済み ${new Intl.DateTimeFormat("ja-JP", {
+                        month: "numeric",
+                        day: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      }).format(new Date(activeDraftState.savedAt))}`
+                    : "このブラウザーに回答と再開位置を保存します"}
+            </p>
+          </div>
           <button
             type="button"
             className="button button--danger"

@@ -128,6 +128,17 @@
     min-width: 12px;
   }
 
+  .question-card__utilities,
+  .draft-controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .question-card__utilities > .button,
+  .draft-controls > .button {
+    width: 100%;
+  }
+
   .results-header__completion {
     align-self: flex-start;
   }

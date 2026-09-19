@@ -1,5 +1,10 @@
 import { useMemo, useState } from "react";
 import { TESTS, type TestId } from "../../data/tests";
+import {
+  deleteAssessmentDraft,
+  loadAssessmentDrafts,
+  saveAssessmentDraft,
+} from "./draftStorage";
 import { loadAssessmentHistory, MAX_HISTORY_ENTRIES, saveAssessmentHistory } from "./historyStorage";
 import { calculateScores } from "./scoring";
 import type {
@@ -13,6 +18,15 @@ const INITIAL_ANSWERS: AnswersByTest = {
   "60": {},
   "100": {},
 };
+
+type DraftState = Record<
+  TestId,
+  {
+    savedAt: string | null;
+    isDirty: boolean;
+    error: string | null;
+  }
+>;
 
 type ResultView = {
   testLabel: string;
@@ -28,9 +42,36 @@ function createHistoryId() {
 
 export function useAssessment() {
   const initialHistory = useMemo(loadAssessmentHistory, []);
-  const [activeTestId, setActiveTestId] = useState<TestId>("100");
-  const [answersByTest, setAnswersByTest] = useState<AnswersByTest>(INITIAL_ANSWERS);
-  const [questionIndex, setQuestionIndex] = useState(0);
+  const initialDrafts = useMemo(loadAssessmentDrafts, []);
+  const latestDraftTestId = useMemo<TestId>(() => {
+    const testIds: TestId[] = ["60", "100"];
+    return testIds.reduce<TestId>((latest, testId) => {
+      const latestTime = initialDrafts.drafts[latest]?.updatedAt ?? "";
+      const candidateTime = initialDrafts.drafts[testId]?.updatedAt ?? "";
+      return candidateTime > latestTime ? testId : latest;
+    }, "100");
+  }, [initialDrafts.drafts]);
+  const [activeTestId, setActiveTestId] = useState<TestId>(latestDraftTestId);
+  const [answersByTest, setAnswersByTest] = useState<AnswersByTest>({
+    "60": initialDrafts.drafts["60"]?.answers ?? INITIAL_ANSWERS["60"],
+    "100": initialDrafts.drafts["100"]?.answers ?? INITIAL_ANSWERS["100"],
+  });
+  const [questionIndexes, setQuestionIndexes] = useState<Record<TestId, number>>({
+    "60": initialDrafts.drafts["60"]?.questionIndex ?? 0,
+    "100": initialDrafts.drafts["100"]?.questionIndex ?? 0,
+  });
+  const [draftState, setDraftState] = useState<DraftState>({
+    "60": {
+      savedAt: initialDrafts.drafts["60"]?.updatedAt ?? null,
+      isDirty: false,
+      error: initialDrafts.error,
+    },
+    "100": {
+      savedAt: initialDrafts.drafts["100"]?.updatedAt ?? null,
+      isDirty: false,
+      error: initialDrafts.error,
+    },
+  });
   const [screen, setScreen] = useState<AssessmentScreen>("diagnosis");
   const [history, setHistory] = useState<AssessmentHistoryEntry[]>(initialHistory.entries);
   const [historyError, setHistoryError] = useState<string | null>(initialHistory.error);
@@ -42,6 +83,8 @@ export function useAssessment() {
 
   const activeTest = TESTS[activeTestId];
   const answers = answersByTest[activeTestId];
+  const questionIndex = questionIndexes[activeTestId];
+  const activeDraftState = draftState[activeTestId];
   const currentQuestion = activeTest.questions[questionIndex];
   const answeredCount = Object.keys(answers).length;
   const questionCount = activeTest.questions.length;
@@ -106,40 +149,74 @@ export function useAssessment() {
       ...current,
       [activeTestId]: nextAnswers,
     }));
+    setDraftState((current) => ({
+      ...current,
+      [activeTestId]: { ...current[activeTestId], isDirty: true, error: null },
+    }));
 
     if (Object.keys(nextAnswers).length === questionCount) {
+      deleteAssessmentDraft(activeTestId);
+      setDraftState((current) => ({
+        ...current,
+        [activeTestId]: { savedAt: null, isDirty: false, error: null },
+      }));
       saveCompletedAssessment(nextAnswers);
       setSelectedHistoryId(null);
       setScreen("results");
     } else if (questionIndex < questionCount - 1) {
-      setQuestionIndex((index) => index + 1);
+      setQuestionIndexes((current) => ({
+        ...current,
+        [activeTestId]: current[activeTestId] + 1,
+      }));
     }
   }
 
   function switchTest(testId: TestId) {
     setActiveTestId(testId);
-    setQuestionIndex(0);
     setSelectedHistoryId(null);
     setScreen("diagnosis");
   }
 
   function goToQuestion(index: number) {
-    setQuestionIndex(Math.max(0, Math.min(questionCount - 1, index)));
+    const nextIndex = Math.max(0, Math.min(questionCount - 1, index));
+    setQuestionIndexes((current) => ({ ...current, [activeTestId]: nextIndex }));
+    setDraftState((current) => ({
+      ...current,
+      [activeTestId]: { ...current[activeTestId], isDirty: true, error: null },
+    }));
   }
 
   function jumpToNextMissing() {
     const nextMissing = activeTest.questions.findIndex((question) => !answers[question.id]);
-    if (nextMissing >= 0) setQuestionIndex(nextMissing);
+    if (nextMissing >= 0) goToQuestion(nextMissing);
+  }
+
+  function saveDraft() {
+    const savedAt = saveAssessmentDraft(activeTestId, answers, questionIndex);
+    setDraftState((current) => ({
+      ...current,
+      [activeTestId]: savedAt
+        ? { savedAt, isDirty: false, error: null }
+        : {
+            ...current[activeTestId],
+            error: "途中保存できませんでした。ブラウザーの設定または空き容量を確認してください。",
+          },
+    }));
   }
 
   function resetAssessment() {
+    deleteAssessmentDraft(activeTestId);
     setAnswersByTest((current) => ({
       ...current,
       [activeTestId]: {},
     }));
+    setDraftState((current) => ({
+      ...current,
+      [activeTestId]: { savedAt: null, isDirty: false, error: null },
+    }));
     setAttemptHistoryIds((current) => ({ ...current, [activeTestId]: null }));
     setSelectedHistoryId(null);
-    setQuestionIndex(0);
+    setQuestionIndexes((current) => ({ ...current, [activeTestId]: 0 }));
     setScreen("diagnosis");
   }
 
@@ -187,12 +264,14 @@ export function useAssessment() {
     screen,
     history,
     historyError,
+    activeDraftState,
     answerCurrentQuestion,
     switchTest,
     goToQuestion,
     goToPreviousQuestion: () => goToQuestion(questionIndex - 1),
     goToNextQuestion: () => goToQuestion(questionIndex + 1),
     jumpToNextMissing,
+    saveDraft,
     showResults: () => {
       setSelectedHistoryId(null);
       setScreen("results");
