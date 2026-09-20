@@ -7,9 +7,11 @@
   "scripts": {
     "validate:data": "node scripts/validate-test-data.mjs",
     "dev": "vite --host 127.0.0.1 --port 5173",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && tsc --project tsconfig.worker.json && vite build",
     "preview": "vite preview --host 127.0.0.1",
-    "serve:dist": "node scripts/serve-dist.mjs"
+    "serve:dist": "node scripts/serve-dist.mjs",
+    "deploy": "pnpm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
     "@vitejs/plugin-react": "^5.0.0",
@@ -22,7 +24,8 @@
   },
   "devDependencies": {
     "@types/react": "^19.2.17",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "wrangler": "^4.111.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [

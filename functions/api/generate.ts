@@ -1,11 +1,3 @@
-type AiBinding = {
-  run(model: string, input: Record<string, unknown>): Promise<unknown>;
-};
-
-type Env = {
-  AI: AiBinding;
-};
-
 type PagesContext = {
   request: Request;
   env: Env;
