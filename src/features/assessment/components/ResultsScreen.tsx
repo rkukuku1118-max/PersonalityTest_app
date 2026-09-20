@@ -13,9 +13,10 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
     historyError,
     reviewAnswers,
     resetAssessment,
+    saveGeneratedReport,
     showHistory,
   } = assessment;
-  const { testLabel, scores, completedAt, isHistory } = resultView;
+  const { id, testLabel, scores, completedAt, isHistory, reports } = resultView;
   const completedAtLabel = completedAt
     ? new Intl.DateTimeFormat("ja-JP", { dateStyle: "medium", timeStyle: "short" }).format(
         new Date(completedAt),
@@ -45,7 +46,13 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
         </p>
       )}
 
-      <AiPromptBuilder testLabel={testLabel} scores={scores} />
+      <AiPromptBuilder
+        resultId={id}
+        testLabel={testLabel}
+        scores={scores}
+        savedReports={reports}
+        onSaveReport={saveGeneratedReport}
+      />
 
       <section className="results-list" aria-label="因子と下位尺度のスコア">
         <h3>因子と下位尺度</h3>

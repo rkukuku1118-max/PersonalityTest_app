@@ -1,5 +1,5 @@
 .history-view {
-  padding: 24px;
+  padding: 30px;
 }
 
 .history-header {
@@ -13,7 +13,7 @@
 
 .history-header h2 {
   margin: 14px 0 5px;
-  font-size: 1.8rem;
+  font-size: clamp(1.55rem, 3vw, 2rem);
   line-height: 1.25;
 }
 
@@ -26,14 +26,19 @@
 .history-privacy-note {
   margin: 18px 0 0;
   padding: 12px 14px;
-  border-radius: 8px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
   color: #4b5563;
   background: var(--surface-soft);
   font-size: 0.82rem;
 }
 
 .history-empty {
-  padding: 64px 20px;
+  margin-top: 20px;
+  padding: 72px 20px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 16px;
+  background: #fbfdfc;
   text-align: center;
 }
 
@@ -54,10 +59,11 @@
 
 .history-card {
   min-width: 0;
-  padding: 18px;
+  padding: 20px;
   border: 1px solid var(--line);
-  border-radius: 9px;
-  background: #fbfcfa;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #ffffff, #fbfdfc);
+  box-shadow: var(--shadow-soft);
 }
 
 .history-card__heading {

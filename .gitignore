@@ -1,6 +1,8 @@
 node_modules/
 dist/
 .pnpm-store/
+.wrangler/
+tmp/*.log
 .agents/*
 !.agents/skills/
 .agents/skills/*

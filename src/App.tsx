@@ -13,19 +13,25 @@ function App() {
   }, [assessment.screen, assessment.activeTestId]);
 
   return (
-    <main className="app-shell">
-      <section className="workspace">
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        メインコンテンツへ移動
+      </a>
+      <main className="workspace">
         <AppHeader
           activeTestId={assessment.activeTestId}
+          currentScreen={assessment.screen}
           onSwitchTest={assessment.switchTest}
           historyCount={assessment.history.length}
           onShowHistory={assessment.showHistory}
         />
-        {assessment.screen === "diagnosis" && <DiagnosisScreen assessment={assessment} />}
-        {assessment.screen === "results" && <ResultsScreen assessment={assessment} />}
-        {assessment.screen === "history" && <HistoryScreen assessment={assessment} />}
-      </section>
-    </main>
+        <div id="main-content" tabIndex={-1}>
+          {assessment.screen === "diagnosis" && <DiagnosisScreen assessment={assessment} />}
+          {assessment.screen === "results" && <ResultsScreen assessment={assessment} />}
+          {assessment.screen === "history" && <HistoryScreen assessment={assessment} />}
+        </div>
+      </main>
+    </div>
   );
 }
 

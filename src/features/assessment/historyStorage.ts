@@ -1,5 +1,11 @@
 import type { TestId } from "../../data/tests";
-import type { AssessmentHistoryEntry, DomainScore, FacetScore } from "./types";
+import type {
+  AssessmentHistoryEntry,
+  DomainScore,
+  FacetScore,
+  GeneratedReport,
+  TextReportCategoryId,
+} from "./types";
 
 const STORAGE_KEY = "hexaco-assessment-history";
 const STORAGE_VERSION = 1;
@@ -66,6 +72,35 @@ function isTestId(value: unknown): value is TestId {
   return value === "60" || value === "100";
 }
 
+const REPORT_CATEGORY_IDS: TextReportCategoryId[] = [
+  "overall",
+  "relationship",
+  "work",
+  "impression",
+];
+
+function isGeneratedReport(value: unknown): value is GeneratedReport {
+  return (
+    isRecord(value) &&
+    typeof value.content === "string" &&
+    typeof value.model === "string" &&
+    typeof value.generatedAt === "string" &&
+    !Number.isNaN(Date.parse(value.generatedAt))
+  );
+}
+
+function isGeneratedReports(
+  value: unknown,
+): value is Partial<Record<TextReportCategoryId, GeneratedReport>> {
+  return (
+    isRecord(value) &&
+    Object.entries(value).every(
+      ([category, report]) =>
+        REPORT_CATEGORY_IDS.includes(category as TextReportCategoryId) && isGeneratedReport(report),
+    )
+  );
+}
+
 function isHistoryEntry(value: unknown): value is AssessmentHistoryEntry {
   return (
     isRecord(value) &&
@@ -75,7 +110,8 @@ function isHistoryEntry(value: unknown): value is AssessmentHistoryEntry {
     typeof value.completedAt === "string" &&
     !Number.isNaN(Date.parse(value.completedAt)) &&
     Array.isArray(value.scores) &&
-    value.scores.every(isDomainScore)
+    value.scores.every(isDomainScore) &&
+    (value.reports === undefined || isGeneratedReports(value.reports))
   );
 }
 

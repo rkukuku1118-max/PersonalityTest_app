@@ -1,6 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { generateText } from "../aiGeneration";
 import { evaluationText, formatScore } from "../scoring";
-import type { DomainScore } from "../types";
+import type { DomainScore, GeneratedReport, TextReportCategoryId } from "../types";
 
 type PromptCategoryId = "overall" | "relationship" | "work" | "impression" | "manual";
 
@@ -164,9 +167,16 @@ const INTERPRETATION_GUIDE = `【分析の品質基準】
 - 数値の復唱は最小限にし、行動、場面、周囲との関わり方へ翻訳してください。`;
 
 type AiPromptBuilderProps = {
+  resultId: string | null;
   testLabel: string;
   scores: DomainScore[];
+  savedReports: Partial<Record<TextReportCategoryId, GeneratedReport>>;
+  onSaveReport: (category: TextReportCategoryId, report: GeneratedReport) => boolean;
 };
+
+function isTextReportCategory(category: PromptCategoryId): category is TextReportCategoryId {
+  return category !== "manual";
+}
 
 function scoreSummary(domain: DomainScore) {
   const facets = domain.facets
@@ -202,31 +212,113 @@ ${INTERPRETATION_GUIDE}
 ${resultText}`;
 }
 
-export function AiPromptBuilder({ testLabel, scores }: AiPromptBuilderProps) {
+export function AiPromptBuilder({
+  resultId,
+  testLabel,
+  scores,
+  savedReports,
+  onSaveReport,
+}: AiPromptBuilderProps) {
   const [category, setCategory] = useState<PromptCategoryId>("overall");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [generationState, setGenerationState] = useState<"idle" | "loading" | "success" | "error">(
+    savedReports.overall ? "success" : "idle",
+  );
+  const [generationResult, setGenerationResult] = useState<GeneratedReport | null>(
+    savedReports.overall ?? null,
+  );
+  const [generationError, setGenerationError] = useState("");
+  const [storageError, setStorageError] = useState("");
+  const generationAbortRef = useRef<AbortController | null>(null);
 
-  const prompt = useMemo(() => buildPrompt(category, testLabel, scores), [category, scores, testLabel]);
+  const prompt = useMemo(
+    () => buildPrompt(category, testLabel, scores),
+    [category, scores, testLabel],
+  );
+  const supportsGeneration = isTextReportCategory(category);
+  const savedReport = supportsGeneration ? savedReports[category] : undefined;
+
+  useEffect(() => {
+    generationAbortRef.current?.abort();
+    generationAbortRef.current = null;
+    setGenerationResult(savedReport ?? null);
+    setGenerationState(savedReport ? "success" : "idle");
+    setGenerationError("");
+    setStorageError("");
+  }, [category, resultId]);
+
+  useEffect(
+    () => () => {
+      generationAbortRef.current?.abort();
+    },
+    [],
+  );
+
+  function resetGeneration() {
+    generationAbortRef.current?.abort();
+    generationAbortRef.current = null;
+    setGenerationState("idle");
+    setGenerationResult(null);
+    setGenerationError("");
+    setStorageError("");
+  }
 
   function chooseCategory(nextCategory: PromptCategoryId) {
     setCategory(nextCategory);
     setCopyState("idle");
+    resetGeneration();
   }
 
-  async function copyPrompt() {
+  async function copyText(text: string) {
     try {
-      await navigator.clipboard.writeText(prompt);
-      setCopyState("copied");
+      await navigator.clipboard.writeText(text);
+      return true;
     } catch {
       const textArea = document.createElement("textarea");
-      textArea.value = prompt;
+      textArea.value = text;
       textArea.style.position = "fixed";
       textArea.style.opacity = "0";
       document.body.appendChild(textArea);
       textArea.select();
       const copied = document.execCommand("copy");
       textArea.remove();
-      setCopyState(copied ? "copied" : "failed");
+      return copied;
+    }
+  }
+
+  async function copyPrompt() {
+    setCopyState((await copyText(prompt)) ? "copied" : "failed");
+  }
+
+  async function generateReport() {
+    if (!isTextReportCategory(category) || generationState === "loading") return;
+
+    generationAbortRef.current?.abort();
+    const controller = new AbortController();
+    generationAbortRef.current = controller;
+    setGenerationState("loading");
+    setGenerationError("");
+    setStorageError("");
+
+    try {
+      const result = await generateText({ prompt, signal: controller.signal });
+      const report: GeneratedReport = {
+        ...result,
+        generatedAt: new Date().toISOString(),
+      };
+      setGenerationResult(report);
+      setGenerationState("success");
+      if (!onSaveReport(category, report)) {
+        setStorageError(
+          "生成結果をローカルストレージに保存できませんでした。ブラウザの設定または空き容量を確認してください。",
+        );
+      }
+    } catch (error) {
+      if (controller.signal.aborted) return;
+      setGenerationError(error instanceof Error ? error.message : "生成に失敗しました。");
+      setGenerationState("error");
+    } finally {
+      if (generationAbortRef.current === controller) generationAbortRef.current = null;
     }
   }
 
@@ -234,8 +326,8 @@ export function AiPromptBuilder({ testLabel, scores }: AiPromptBuilderProps) {
     <section className="ai-prompt" aria-labelledby="ai-prompt-heading">
       <div className="ai-prompt__intro">
         <span className="ai-prompt__eyebrow">AIでもっと詳しく</span>
-        <h3 id="ai-prompt-heading">診断結果からプロンプトを作る</h3>
-        <p>気になるテーマを選び、コピーしてお使いのAIに貼り付けてください。</p>
+        <h3 id="ai-prompt-heading">診断結果から文章を自動生成</h3>
+        <p>テーマを選ぶと、診断結果に基づく文章をこの画面で生成できます。</p>
       </div>
 
       <div className="prompt-step">
@@ -271,7 +363,7 @@ export function AiPromptBuilder({ testLabel, scores }: AiPromptBuilderProps) {
         <div className="prompt-step__heading">
           <span>2</span>
           <div>
-            <h4>プロンプトをコピー</h4>
+            <h4>プロンプトを確認</h4>
             <p>全因子・全下位尺度と、選んだテーマに合わせた分析指示が含まれます。</p>
           </div>
         </div>
@@ -281,7 +373,7 @@ export function AiPromptBuilder({ testLabel, scores }: AiPromptBuilderProps) {
         </details>
         <button
           type="button"
-          className={`prompt-copy-button${copyState === "copied" ? " is-copied" : ""}`}
+          className={`prompt-copy-button${supportsGeneration ? " prompt-copy-button--secondary" : ""}${copyState === "copied" ? " is-copied" : ""}`}
           onClick={copyPrompt}
         >
           <span aria-hidden="true">{copyState === "copied" ? "✓" : "□"}</span>
@@ -291,10 +383,103 @@ export function AiPromptBuilder({ testLabel, scores }: AiPromptBuilderProps) {
           {copyState === "copied" && "お使いのAIを開いて、そのまま貼り付けてください。"}
           {copyState === "failed" && "コピーできませんでした。内容を開いて手動でコピーしてください。"}
         </p>
+        {!supportsGeneration && (
+          <p className="prompt-image-scope-note">
+            画像生成は今回の対象外です。このテーマはプロンプトのコピーのみ利用できます。
+          </p>
+        )}
       </div>
 
+      {supportsGeneration && (
+        <div className="prompt-step prompt-step--generate">
+          <div className="prompt-step__heading">
+            <span>3</span>
+            <div>
+              <h4>診断レポートを生成</h4>
+              <p>Cloudflare Workers AIのGemma 4 26Bを使って、日本語の文章を生成します。</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="prompt-generate-button"
+            disabled={generationState === "loading"}
+            onClick={generateReport}
+          >
+            {generationState === "loading"
+              ? "生成しています…"
+              : generationResult
+                ? "レポートを再生成（上書き）"
+                : "無料で文章を生成"}
+          </button>
+
+          <div className="generation-status" aria-live="polite" aria-busy={generationState === "loading"}>
+            {generationState === "loading" && (
+              <div className="generation-status__loading" role="status">
+                <div className="generation-status__visual" aria-hidden="true">
+                  <span className="generation-status__orbit generation-status__orbit--outer" />
+                  <span className="generation-status__orbit generation-status__orbit--inner" />
+                  <span className="generation-status__spark">✦</span>
+                </div>
+                <div className="generation-status__content">
+                  <span className="generation-status__eyebrow">
+                    <i aria-hidden="true" />
+                    AIがレポートを作成中
+                  </span>
+                  <strong>診断結果をじっくり読み解いています</strong>
+                  <p>分析する内容が多いため、完了まで少し時間がかかることがあります。</p>
+                  <div className="generation-status__progress" aria-hidden="true">
+                    <span />
+                  </div>
+                  <div className="generation-status__steps" aria-hidden="true">
+                    <span>回答を分析</span>
+                    <span>レポートを構成</span>
+                    <span>文章を調整</span>
+                  </div>
+                  <small>この画面を開いたままお待ちください。完了すると自動で表示されます。</small>
+                </div>
+              </div>
+            )}
+            {generationState === "error" && (
+              <div className="generation-status__error" role="alert">
+                <p>{generationError}</p>
+                <button type="button" onClick={generateReport}>
+                  もう一度試す
+                </button>
+              </div>
+            )}
+            {generationResult && (
+              <article className="generation-result">
+                <div className="generation-result__header">
+                  <div>
+                    <strong>生成結果</strong>
+                    <small>
+                      {generationResult.model} ・
+                      {new Intl.DateTimeFormat("ja-JP", {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      }).format(new Date(generationResult.generatedAt))}
+                    </small>
+                  </div>
+                  {!storageError && <span className="generation-result__saved">ローカル保存済み</span>}
+                </div>
+                <div className="generation-result__body">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {generationResult.content}
+                  </ReactMarkdown>
+                </div>
+              </article>
+            )}
+            {storageError && (
+              <p className="generation-result__storage-error" role="alert">
+                {storageError}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
       <p className="ai-prompt__note">
-        外部のAIサービスに送信する前に、個人を特定できる情報を追加していないかご確認ください。
+        生成ボタンを押したときだけ、診断結果をCloudflare Workers AIへ送信します。個人を特定できる情報は送信しないでください。Workers Freeプランでは、無料枠の上限に達すると生成に失敗します。
       </p>
     </section>
   );

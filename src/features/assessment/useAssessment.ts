@@ -12,6 +12,8 @@ import type {
   AssessmentHistoryEntry,
   AssessmentScreen,
   DomainScore,
+  GeneratedReport,
+  TextReportCategoryId,
 } from "./types";
 
 const INITIAL_ANSWERS: AnswersByTest = {
@@ -29,10 +31,12 @@ type DraftState = Record<
 >;
 
 type ResultView = {
+  id: string | null;
   testLabel: string;
   scores: DomainScore[];
   completedAt: string | null;
   isHistory: boolean;
+  reports: Partial<Record<TextReportCategoryId, GeneratedReport>>;
 };
 
 function createHistoryId() {
@@ -92,29 +96,55 @@ export function useAssessment() {
   const isComplete = answeredCount === questionCount;
   const scores = useMemo(() => calculateScores(activeTest, answers), [activeTest, answers]);
   const selectedHistory = history.find((entry) => entry.id === selectedHistoryId) ?? null;
+  const activeHistoryId = attemptHistoryIds[activeTestId];
+  const activeHistory = history.find((entry) => entry.id === activeHistoryId) ?? null;
   const resultView: ResultView = selectedHistory
     ? {
+        id: selectedHistory.id,
         testLabel: selectedHistory.testLabel,
         scores: selectedHistory.scores,
         completedAt: selectedHistory.completedAt,
         isHistory: true,
+        reports: selectedHistory.reports ?? {},
       }
     : {
+        id: activeHistory?.id ?? null,
         testLabel: activeTest.label,
         scores,
         completedAt: null,
         isHistory: false,
+        reports: activeHistory?.reports ?? {},
       };
   const completeDomainCount = resultView.scores.filter((score) => score.answered === score.total).length;
 
-  function commitHistory(nextHistory: AssessmentHistoryEntry[]) {
+  function commitHistory(nextHistory: AssessmentHistoryEntry[], keepInMemoryOnFailure = true) {
     const limitedHistory = nextHistory.slice(0, MAX_HISTORY_ENTRIES);
-    setHistory(limitedHistory);
+    const saved = saveAssessmentHistory(limitedHistory);
+    if (saved || keepInMemoryOnFailure) setHistory(limitedHistory);
     setHistoryError(
-      saveAssessmentHistory(limitedHistory)
-        ? null
-        : "履歴を保存できませんでした。ブラウザの設定または空き容量を確認してください。",
+      saved ? null : "履歴を保存できませんでした。ブラウザの設定または空き容量を確認してください。",
     );
+    return saved;
+  }
+
+  function saveGeneratedReport(category: TextReportCategoryId, report: GeneratedReport) {
+    const resultId = selectedHistoryId ?? attemptHistoryIds[activeTestId];
+    if (!resultId) return false;
+
+    let found = false;
+    const nextHistory = history.map((entry) => {
+      if (entry.id !== resultId) return entry;
+      found = true;
+      return {
+        ...entry,
+        reports: {
+          ...entry.reports,
+          [category]: report,
+        },
+      };
+    });
+
+    return found && commitHistory(nextHistory, false);
   }
 
   function saveCompletedAssessment(nextAnswers: AnswersByTest[TestId]) {
@@ -140,6 +170,7 @@ export function useAssessment() {
   }
 
   function answerCurrentQuestion(value: number) {
+    const wasComplete = Object.keys(answers).length === questionCount;
     const nextAnswers = {
       ...answers,
       [currentQuestion.id]: value,
@@ -161,8 +192,10 @@ export function useAssessment() {
         [activeTestId]: { savedAt: null, isDirty: false, error: null },
       }));
       saveCompletedAssessment(nextAnswers);
-      setSelectedHistoryId(null);
-      setScreen("results");
+      if (!wasComplete) {
+        setSelectedHistoryId(null);
+        setScreen("results");
+      }
     } else if (questionIndex < questionCount - 1) {
       setQuestionIndexes((current) => ({
         ...current,
@@ -180,10 +213,6 @@ export function useAssessment() {
   function goToQuestion(index: number) {
     const nextIndex = Math.max(0, Math.min(questionCount - 1, index));
     setQuestionIndexes((current) => ({ ...current, [activeTestId]: nextIndex }));
-    setDraftState((current) => ({
-      ...current,
-      [activeTestId]: { ...current[activeTestId], isDirty: true, error: null },
-    }));
   }
 
   function jumpToNextMissing() {
@@ -285,6 +314,7 @@ export function useAssessment() {
     deleteHistoryEntry,
     clearHistory,
     resetAssessment,
+    saveGeneratedReport,
   };
 }
 

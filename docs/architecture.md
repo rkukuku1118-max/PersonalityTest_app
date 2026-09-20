@@ -6,8 +6,9 @@
 
 - `App.tsx` は画面の組み立てだけを担当する
 - 回答状態と画面遷移は `useAssessment` に集約する
-- 診断履歴は `historyStorage` を介してブラウザーの `localStorage` に保存する
+- 診断履歴とテーマ別の生成レポートは `historyStorage` を介してブラウザーの `localStorage` に保存する
 - 採点は React に依存しない純粋関数として実装する
+- 文章生成はブラウザーからPages Functionを介し、APIトークンをクライアントへ置かない
 - UI は役割単位の小さな関数コンポーネントに分ける
 - スタイルは基盤、診断、結果、レスポンシブに分ける
 
@@ -26,6 +27,7 @@ src/
 │  └─ assessment/
 │     ├─ types.ts
 │     ├─ scoring.ts
+│     ├─ aiGeneration.ts
 │     ├─ useAssessment.ts
 │     └─ components/
 │        ├─ AppHeader.tsx
@@ -39,6 +41,10 @@ src/
    ├─ diagnosis.css
    ├─ results.css
    └─ responsive.css
+functions/
+└─ api/
+   └─ generate.ts
+wrangler.jsonc
 ```
 
 ## 依存方向
@@ -64,6 +70,7 @@ App
 - 履歴の保存形式や件数上限を変える: `historyStorage.ts`
 - 診断画面を変える: `DiagnosisScreen.tsx` と `diagnosis.css`
 - 結果表示を変える: `ResultsScreen.tsx`、`ScoreCards.tsx`、`results.css`
+- 文章生成の通信を変える: `aiGeneration.ts` と `functions/api/generate.ts`
 - 質問や基準値を変える: `data/test-definitions.json`
 - 全画面共通の見た目を変える: `base.css` または `layout.css`
 

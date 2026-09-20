@@ -25,12 +25,21 @@ export type DomainScore = {
   facets: FacetScore[];
 };
 
+export type TextReportCategoryId = "overall" | "relationship" | "work" | "impression";
+
+export type GeneratedReport = {
+  content: string;
+  model: string;
+  generatedAt: string;
+};
+
 export type AssessmentHistoryEntry = {
   id: string;
   testId: TestId;
   testLabel: string;
   completedAt: string;
   scores: DomainScore[];
+  reports?: Partial<Record<TextReportCategoryId, GeneratedReport>>;
 };
 
 export type EvaluationTone = "high" | "average" | "low";

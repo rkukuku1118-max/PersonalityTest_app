@@ -89,6 +89,14 @@ pnpm run validate:data
 pnpm run build
 ```
 
+文章の自動生成までローカルで確認する場合は、Cloudflareへログインした状態でビルド後に次を実行します。
+
+```powershell
+pnpm dlx wrangler pages dev dist --ai AI
+```
+
+表示されたローカルURLを開いてください。通常の `pnpm run dev` では画面開発はできますが、Pages Functionである `/api/generate` は動作しません。ローカルからのWorkers AI呼び出しもCloudflareの利用枠を消費します。
+
 ビルド済みのアプリを確認する場合は、ビルド後に次を実行します。
 
 ```powershell
@@ -152,12 +160,15 @@ pnpm.cmd run dev
 - 全問回答後に診断結果画面へ移動する
 - 因子スコアと下位尺度スコアを確認する
 - 5つのテーマから、診断結果を含むAI向けプロンプトを作成・コピーする
-- 「あなたの取扱説明書」では、共有用画像を生成するためのプロンプトを作成する
+- 4つの文章テーマでは、`@cf/google/gemma-4-26b-a4b-it` による診断文を画面内で生成し、Markdownとして表示する
+- 「あなたの取扱説明書」では画像生成用プロンプトの作成・コピーだけを行い、画像は生成しない
 - 結果から診断画面へ戻って回答を見直す
 - 完了した診断結果をブラウザー内へ最大50件保存する
 - 診断履歴から過去の結果を表示・削除する
 
-診断履歴には集計済みスコアと実施日時だけを保存します。個々の設問への回答は「途中保存」を押した場合に限り、再開位置とともにブラウザーへ保存され、診断完了時または回答のクリア時に削除されます。データはサーバーへ送信されず、別のブラウザーや端末には同期されません。ブラウザーのサイトデータを消去すると履歴と途中保存データも削除されます。
+診断履歴には集計済みスコア、実施日時、生成済みの診断レポートを保存します。レポートは診断・テーマごとに保持し、同じテーマで再生成すると成功時に上書きします。個々の設問への回答は「途中保存」を押した場合に限り、再開位置とともにブラウザーへ保存され、診断完了時または回答のクリア時に削除されます。これらの保存データはサーバーへ同期されず、別のブラウザーや端末には共有されません。ブラウザーのサイトデータを消去すると履歴、レポート、途中保存データも削除されます。
+
+文章生成は生成ボタンを押したときだけ、診断スコアをCloudflare Workers AIへ送信します。ブラウザーへAPIトークンは保存しません。Cloudflare Workers Freeプランの無料枠内での利用を前提とし、枠を使い切った場合は生成リクエストが失敗します。
 
 表示する主な尺度は、誠実さ・謙虚さ、情動性、外向性、協調性、勤勉性、開放性です。100問版では利他性も表示します。
 
@@ -176,7 +187,10 @@ pnpm.cmd run dev
 - `src/features/assessment/scoring.ts`: 採点と評価の純粋関数
 - `src/features/assessment/historyStorage.ts`: 診断履歴の検証とローカル保存
 - `src/features/assessment/draftStorage.ts`: 診断途中の回答と再開位置の検証・ローカル保存
+- `src/features/assessment/aiGeneration.ts`: 文章生成APIのブラウザークライアント
 - `src/features/assessment/components/`: 診断・結果画面の表示
+- `functions/api/generate.ts`: Workers AI bindingを呼び出すCloudflare Pages Function
+- `wrangler.jsonc`: Cloudflare PagesとWorkers AI bindingの設定
 - `src/styles/`: 基盤、各画面、レスポンシブのスタイル
 - `src/data/test-definitions.json`: 質問、採点キー、基準値
 - `src/data/tests.ts`: データ型と読み込み処理

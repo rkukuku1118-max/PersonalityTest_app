@@ -1,10 +1,10 @@
 .app-shell {
   min-height: 100vh;
-  padding: 28px;
+  padding: 30px 24px 56px;
 }
 
 .workspace {
-  width: min(1240px, 100%);
+  width: min(1180px, 100%);
   margin: 0 auto;
 }
 
@@ -13,8 +13,8 @@
 .question-card,
 .results-view,
 .history-view {
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px solid rgba(185, 203, 196, 0.78);
+  border-radius: var(--radius-lg);
   background: var(--surface);
   box-shadow: var(--shadow);
 }
@@ -23,38 +23,68 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
-  padding: 22px;
+  gap: 28px;
+  padding: 20px 22px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.app-brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+}
+
+.app-brand__mark {
+  display: grid;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 15px 15px 15px 5px;
+  color: #ffffff;
+  background: linear-gradient(145deg, #0b8c7f, #075f57);
+  box-shadow: 0 8px 18px rgba(7, 95, 87, 0.22);
+  font-size: 1.15rem;
+  font-weight: 900;
 }
 
 .app-header__eyebrow {
-  margin: 0 0 5px;
+  margin: 0 0 2px;
   color: var(--teal);
-  font-size: 0.76rem;
-  font-weight: 800;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .app-header h1 {
   margin-bottom: 0;
-  font-size: 2rem;
+  font-size: 1.55rem;
   line-height: 1.18;
+}
+
+.app-header__tagline {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.78rem;
 }
 
 .app-header__actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .history-link {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  min-height: 42px;
-  padding: 0 13px;
+  min-height: 44px;
+  padding: 0 14px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 12px;
   color: var(--teal-dark);
   background: #ffffff;
   cursor: pointer;
@@ -64,6 +94,12 @@
 
 .history-link:hover {
   background: #eef8f5;
+}
+
+.history-link.is-active {
+  border-color: var(--teal);
+  color: var(--teal-dark);
+  background: var(--teal-soft);
 }
 
 .history-link span {
@@ -81,18 +117,18 @@
 .test-selector {
   display: grid;
   grid-template-columns: repeat(2, minmax(92px, 1fr));
-  gap: 6px;
+  gap: 5px;
   min-width: 220px;
   padding: 5px;
   border: 1px solid var(--line);
-  border-radius: 8px;
+  border-radius: 13px;
   background: var(--surface-soft);
 }
 
 .test-selector__option {
-  min-height: 42px;
+  min-height: 40px;
   padding: 0 14px;
-  border-radius: 6px;
+  border-radius: 9px;
   color: var(--muted);
   background: transparent;
   cursor: pointer;
@@ -102,10 +138,11 @@
 .test-selector__option.is-active {
   color: #ffffff;
   background: var(--teal);
+  box-shadow: 0 5px 12px rgba(8, 123, 112, 0.2);
 }
 
 .view {
-  margin-top: 14px;
+  margin-top: 18px;
   animation: view-enter 220ms ease-out;
 }
 
@@ -125,20 +162,26 @@
   display: grid;
   grid-template-columns: auto minmax(180px, 1fr) auto;
   align-items: center;
-  gap: 16px;
-  padding: 16px 18px;
+  gap: 20px;
+  padding: 17px 20px;
+  box-shadow: var(--shadow-soft);
+}
+
+.assessment-status__summary {
+  min-width: 132px;
 }
 
 .assessment-status__value {
   display: block;
-  font-size: 1.25rem;
-  font-weight: 850;
+  color: var(--teal-dark);
+  font-size: 1.32rem;
+  font-weight: 900;
 }
 
 .assessment-status__label {
   color: var(--muted);
   font-size: 0.82rem;
-  font-weight: 700;
+  font-weight: 750;
 }
 
 .assessment-status__actions {
@@ -152,7 +195,7 @@
   overflow: hidden;
   height: 10px;
   border-radius: 999px;
-  background: #e7ece4;
+  background: #e4ebe7;
 }
 
 .progress-bar span,
@@ -160,14 +203,14 @@
   display: block;
   height: 100%;
   border-radius: inherit;
-  background: var(--teal);
+  background: linear-gradient(90deg, #0b8c7f, #42a995);
   transition: width 180ms ease;
 }
 
 .button {
-  min-height: 42px;
+  min-height: 44px;
   padding: 0 16px;
-  border-radius: 8px;
+  border-radius: 11px;
   cursor: pointer;
   font-weight: 800;
   white-space: nowrap;
@@ -176,6 +219,7 @@
 .button--primary {
   color: #ffffff;
   background: var(--teal);
+  box-shadow: 0 6px 14px rgba(8, 123, 112, 0.18);
 }
 
 .button--primary:hover {
@@ -184,12 +228,12 @@
 
 .button--secondary {
   color: var(--ink);
-  background: #e9ece6;
+  background: #e9efec;
 }
 
 .button--ghost {
-  color: var(--teal);
-  background: #e9f5f1;
+  color: var(--teal-dark);
+  background: var(--teal-soft);
 }
 
 .button--danger {
@@ -200,7 +244,8 @@
 .button:disabled,
 button:disabled {
   cursor: not-allowed;
-  opacity: 0.48;
+  box-shadow: none;
+  opacity: 0.46;
 }
 
 .source-note {
