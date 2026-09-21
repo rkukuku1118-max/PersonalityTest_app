@@ -1,10 +1,11 @@
 import { TESTS, type TestId } from "../../../data/tests";
+import type { AssessmentScreen } from "../types";
 
 const TEST_IDS: TestId[] = ["100", "60"];
 
 type AppHeaderProps = {
   activeTestId: TestId;
-  currentScreen: "diagnosis" | "results" | "history";
+  currentScreen: AssessmentScreen;
   onSwitchTest: (testId: TestId) => void;
   historyCount: number;
   onShowHistory: () => void;

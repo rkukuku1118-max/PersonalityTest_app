@@ -111,7 +111,16 @@ function isHistoryEntry(value: unknown): value is AssessmentHistoryEntry {
     !Number.isNaN(Date.parse(value.completedAt)) &&
     Array.isArray(value.scores) &&
     value.scores.every(isDomainScore) &&
-    (value.reports === undefined || isGeneratedReports(value.reports))
+    (value.reports === undefined || isGeneratedReports(value.reports)) &&
+    (value.scoringVersion === undefined || typeof value.scoringVersion === "string") &&
+    (value.source === undefined || value.source === "shared") &&
+    (value.sharedFingerprint === undefined || typeof value.sharedFingerprint === "string") &&
+    (value.sharedLabel === undefined ||
+      (typeof value.sharedLabel === "string" && value.sharedLabel.length <= 60)) &&
+    (value.source !== "shared" ||
+      (typeof value.sharedFingerprint === "string" &&
+        typeof value.sharedLabel === "string" &&
+        typeof value.scoringVersion === "string"))
   );
 }
 

@@ -29,6 +29,22 @@ function App() {
           {assessment.screen === "diagnosis" && <DiagnosisScreen assessment={assessment} />}
           {assessment.screen === "results" && <ResultsScreen assessment={assessment} />}
           {assessment.screen === "history" && <HistoryScreen assessment={assessment} />}
+          {assessment.screen === "share-error" && (
+            <section className="view share-error-view" aria-labelledby="share-error-heading">
+              <span className="status-pill">共有リンクエラー</span>
+              <h2 id="share-error-heading">
+                この共有リンクは無効か、現在のバージョンでは表示できません。
+              </h2>
+              <p>リンクが途中で切れていないか、共有元にご確認ください。</p>
+              <button
+                type="button"
+                className="button button--primary"
+                onClick={assessment.startAssessmentFromShared}
+              >
+                自分の診断を始める
+              </button>
+            </section>
+          )}
         </div>
       </main>
     </div>

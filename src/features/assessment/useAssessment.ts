@@ -7,12 +7,14 @@ import {
 } from "./draftStorage";
 import { loadAssessmentHistory, MAX_HISTORY_ENTRIES, saveAssessmentHistory } from "./historyStorage";
 import { calculateScores } from "./scoring";
+import { parseShareHash, SCORING_VERSION, type SharedResult } from "./shareUrl";
 import type {
   AnswersByTest,
   AssessmentHistoryEntry,
   AssessmentScreen,
   DomainScore,
   GeneratedReport,
+  ResultSource,
   TextReportCategoryId,
 } from "./types";
 
@@ -32,11 +34,15 @@ type DraftState = Record<
 
 type ResultView = {
   id: string | null;
+  testId: TestId;
   testLabel: string;
   scores: DomainScore[];
   completedAt: string | null;
-  isHistory: boolean;
+  source: ResultSource;
+  scoringVersion: string;
   reports: Partial<Record<TextReportCategoryId, GeneratedReport>>;
+  isSharedSaved: boolean;
+  isSharedResult: boolean;
 };
 
 function createHistoryId() {
@@ -44,9 +50,20 @@ function createHistoryId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
 
+function loadInitialShare() {
+  if (typeof window === "undefined") return { kind: "none" } as const;
+  return parseShareHash(window.location.hash, window.location.href.length);
+}
+
+function clearShareFragment() {
+  if (typeof window === "undefined" || !window.location.hash.startsWith("#share=")) return;
+  window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}`);
+}
+
 export function useAssessment() {
   const initialHistory = useMemo(loadAssessmentHistory, []);
   const initialDrafts = useMemo(loadAssessmentDrafts, []);
+  const initialShare = useMemo(loadInitialShare, []);
   const latestDraftTestId = useMemo<TestId>(() => {
     const testIds: TestId[] = ["60", "100"];
     return testIds.reduce<TestId>((latest, testId) => {
@@ -55,7 +72,9 @@ export function useAssessment() {
       return candidateTime > latestTime ? testId : latest;
     }, "100");
   }, [initialDrafts.drafts]);
-  const [activeTestId, setActiveTestId] = useState<TestId>(latestDraftTestId);
+  const [activeTestId, setActiveTestId] = useState<TestId>(
+    initialShare.kind === "valid" ? initialShare.result.testId : latestDraftTestId,
+  );
   const [answersByTest, setAnswersByTest] = useState<AnswersByTest>({
     "60": initialDrafts.drafts["60"]?.answers ?? INITIAL_ANSWERS["60"],
     "100": initialDrafts.drafts["100"]?.answers ?? INITIAL_ANSWERS["100"],
@@ -76,7 +95,13 @@ export function useAssessment() {
       error: initialDrafts.error,
     },
   });
-  const [screen, setScreen] = useState<AssessmentScreen>("diagnosis");
+  const [screen, setScreen] = useState<AssessmentScreen>(
+    initialShare.kind === "valid"
+      ? "results"
+      : initialShare.kind === "invalid"
+        ? "share-error"
+        : "diagnosis",
+  );
   const [history, setHistory] = useState<AssessmentHistoryEntry[]>(initialHistory.entries);
   const [historyError, setHistoryError] = useState<string | null>(initialHistory.error);
   const [selectedHistoryId, setSelectedHistoryId] = useState<string | null>(null);
@@ -84,6 +109,20 @@ export function useAssessment() {
     "60": null,
     "100": null,
   });
+  const [sharedResult, setSharedResult] = useState<SharedResult | null>(
+    initialShare.kind === "valid" ? initialShare.result : null,
+  );
+  const [sharedReports, setSharedReports] = useState<
+    Partial<Record<TextReportCategoryId, GeneratedReport>>
+  >(() => {
+    if (initialShare.kind !== "valid") return {};
+    return (
+      initialHistory.entries.find(
+        (entry) => entry.sharedFingerprint === initialShare.result.fingerprint,
+      )?.reports ?? {}
+    );
+  });
+  const [sharedSaveError, setSharedSaveError] = useState<string | null>(null);
 
   const activeTest = TESTS[activeTestId];
   const answers = answersByTest[activeTestId];
@@ -98,22 +137,46 @@ export function useAssessment() {
   const selectedHistory = history.find((entry) => entry.id === selectedHistoryId) ?? null;
   const activeHistoryId = attemptHistoryIds[activeTestId];
   const activeHistory = history.find((entry) => entry.id === activeHistoryId) ?? null;
+  const savedSharedEntry = sharedResult
+    ? history.find((entry) => entry.sharedFingerprint === sharedResult.fingerprint) ?? null
+    : null;
   const resultView: ResultView = selectedHistory
     ? {
         id: selectedHistory.id,
+        testId: selectedHistory.testId,
         testLabel: selectedHistory.testLabel,
         scores: selectedHistory.scores,
         completedAt: selectedHistory.completedAt,
-        isHistory: true,
+        source: "history",
+        scoringVersion: selectedHistory.scoringVersion ?? SCORING_VERSION,
         reports: selectedHistory.reports ?? {},
+        isSharedSaved: false,
+        isSharedResult: selectedHistory.source === "shared",
       }
+    : sharedResult
+      ? {
+          id: sharedResult.fingerprint,
+          testId: sharedResult.testId,
+          testLabel: TESTS[sharedResult.testId].label,
+          scores: sharedResult.scores,
+          completedAt: null,
+          source: "shared",
+          scoringVersion: sharedResult.scoringVersion,
+          reports: { ...savedSharedEntry?.reports, ...sharedReports },
+          isSharedSaved: savedSharedEntry !== null,
+          isSharedResult: true,
+        }
     : {
         id: activeHistory?.id ?? null,
+        testId: activeTestId,
         testLabel: activeTest.label,
         scores,
         completedAt: null,
-        isHistory: false,
+        source: "current",
+        scoringVersion: activeHistory?.scoringVersion ?? SCORING_VERSION,
         reports: activeHistory?.reports ?? {},
+        isSharedSaved: false,
+        isSharedResult: false,
       };
   function commitHistory(nextHistory: AssessmentHistoryEntry[], keepInMemoryOnFailure = true) {
     const limitedHistory = nextHistory.slice(0, MAX_HISTORY_ENTRIES);
@@ -126,6 +189,22 @@ export function useAssessment() {
   }
 
   function saveGeneratedReport(category: TextReportCategoryId, report: GeneratedReport) {
+    if (sharedResult && !selectedHistoryId) {
+      setSharedReports((current) => ({ ...current, [category]: report }));
+      const savedEntry = history.find(
+        (entry) => entry.sharedFingerprint === sharedResult.fingerprint,
+      );
+      if (!savedEntry) return true;
+      return commitHistory(
+        history.map((entry) =>
+          entry.id === savedEntry.id
+            ? { ...entry, reports: { ...entry.reports, [category]: report } }
+            : entry,
+        ),
+        false,
+      );
+    }
+
     const resultId = selectedHistoryId ?? attemptHistoryIds[activeTestId];
     if (!resultId) return false;
 
@@ -162,6 +241,7 @@ export function useAssessment() {
       testLabel: activeTest.label,
       completedAt: new Date().toISOString(),
       scores: nextScores,
+      scoringVersion: SCORING_VERSION,
     };
     setAttemptHistoryIds((current) => ({ ...current, [activeTestId]: entry.id }));
     commitHistory([entry, ...history]);
@@ -203,6 +283,10 @@ export function useAssessment() {
   }
 
   function switchTest(testId: TestId) {
+    clearShareFragment();
+    setSharedResult(null);
+    setSharedReports({});
+    setSharedSaveError(null);
     setActiveTestId(testId);
     setSelectedHistoryId(null);
     setScreen("diagnosis");
@@ -232,6 +316,10 @@ export function useAssessment() {
   }
 
   function resetAssessment() {
+    clearShareFragment();
+    setSharedResult(null);
+    setSharedReports({});
+    setSharedSaveError(null);
     deleteAssessmentDraft(activeTestId);
     setAnswersByTest((current) => ({
       ...current,
@@ -248,6 +336,10 @@ export function useAssessment() {
   }
 
   function showHistory() {
+    clearShareFragment();
+    setSharedResult(null);
+    setSharedReports({});
+    setSharedSaveError(null);
     setSelectedHistoryId(null);
     setScreen("history");
   }
@@ -255,6 +347,10 @@ export function useAssessment() {
   function viewHistoryEntry(id: string) {
     const entry = history.find((item) => item.id === id);
     if (!entry) return;
+    clearShareFragment();
+    setSharedResult(null);
+    setSharedReports({});
+    setSharedSaveError(null);
     setActiveTestId(entry.testId);
     setSelectedHistoryId(id);
     setScreen("results");
@@ -275,6 +371,48 @@ export function useAssessment() {
     setSelectedHistoryId(null);
   }
 
+  function saveSharedResult(label: string) {
+    if (!sharedResult) return false;
+    const normalizedLabel = label.trim();
+    if (!normalizedLabel) {
+      setSharedSaveError("この結果を識別するためのラベルを入力してください。");
+      return false;
+    }
+    if (history.some((entry) => entry.sharedFingerprint === sharedResult.fingerprint)) {
+      setSharedSaveError(null);
+      return true;
+    }
+
+    const entry: AssessmentHistoryEntry = {
+      id: createHistoryId(),
+      testId: sharedResult.testId,
+      testLabel: TESTS[sharedResult.testId].label,
+      completedAt: new Date().toISOString(),
+      scores: sharedResult.scores,
+      reports: sharedReports,
+      scoringVersion: sharedResult.scoringVersion,
+      source: "shared",
+      sharedFingerprint: sharedResult.fingerprint,
+      sharedLabel: normalizedLabel.slice(0, 60),
+    };
+    const saved = commitHistory([entry, ...history], false);
+    setSharedSaveError(
+      saved
+        ? null
+        : "共有結果を保存できませんでした。ブラウザの設定または空き容量を確認してください。",
+    );
+    return saved;
+  }
+
+  function startAssessmentFromShared() {
+    clearShareFragment();
+    setSharedResult(null);
+    setSharedReports({});
+    setSharedSaveError(null);
+    setSelectedHistoryId(null);
+    setScreen("diagnosis");
+  }
+
   return {
     activeTestId,
     activeTest,
@@ -290,6 +428,7 @@ export function useAssessment() {
     screen,
     history,
     historyError,
+    sharedSaveError,
     activeDraftState,
     answerCurrentQuestion,
     switchTest,
@@ -312,6 +451,8 @@ export function useAssessment() {
     clearHistory,
     resetAssessment,
     saveGeneratedReport,
+    saveSharedResult,
+    startAssessmentFromShared,
   };
 }
 

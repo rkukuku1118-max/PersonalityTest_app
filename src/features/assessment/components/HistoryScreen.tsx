@@ -65,10 +65,11 @@ export function HistoryScreen({ assessment }: HistoryScreenProps) {
               <article className="history-card" key={entry.id}>
                 <div className="history-card__heading">
                   <div>
-                    <h3>{entry.testLabel}</h3>
+                    <h3>{entry.sharedLabel ?? entry.testLabel}</h3>
+                    {entry.sharedLabel && <small>{entry.testLabel}</small>}
                     <time dateTime={entry.completedAt}>{dateFormatter.format(new Date(entry.completedAt))}</time>
                   </div>
-                  <span>{entry.scores.length}因子</span>
+                  <span>{entry.source === "shared" ? "共有結果" : `${entry.scores.length}因子`}</span>
                 </div>
                 <dl className="history-card__scores">
                   {entry.scores.map((score) => (

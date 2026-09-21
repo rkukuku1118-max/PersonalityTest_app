@@ -172,6 +172,7 @@ type AiPromptBuilderProps = {
   scores: DomainScore[];
   savedReports: Partial<Record<TextReportCategoryId, GeneratedReport>>;
   onSaveReport: (category: TextReportCategoryId, report: GeneratedReport) => boolean;
+  reportStorage: "saved" | "memory";
 };
 
 function isTextReportCategory(category: PromptCategoryId): category is TextReportCategoryId {
@@ -218,6 +219,7 @@ export function AiPromptBuilder({
   scores,
   savedReports,
   onSaveReport,
+  reportStorage,
 }: AiPromptBuilderProps) {
   const [category, setCategory] = useState<PromptCategoryId>("overall");
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
@@ -451,7 +453,11 @@ export function AiPromptBuilder({
                         }).format(new Date(generationResult.generatedAt))}
                       </small>
                     </div>
-                    {!storageError && <span className="generation-result__saved">ローカルストレージ保存済み</span>}
+                    {!storageError && (
+                      <span className="generation-result__saved">
+                        {reportStorage === "saved" ? "ローカルストレージ保存済み" : "この画面で一時保持中"}
+                      </span>
+                    )}
                   </div>
                   <div className="generation-result__body">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>

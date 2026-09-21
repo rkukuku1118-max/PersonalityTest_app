@@ -244,6 +244,28 @@
     margin-top: 24px;
   }
 
+  .shared-save__controls,
+  .share-dialog__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .shared-save__controls .button,
+  .share-dialog__actions .button {
+    width: 100%;
+  }
+
+  .share-dialog-backdrop {
+    align-items: end;
+    padding: 8px;
+  }
+
+  .share-dialog {
+    max-height: calc(100vh - 16px);
+    padding: 20px 16px;
+    border-radius: 16px;
+  }
+
   .score-overview {
     margin-top: 18px;
     padding: 18px 14px;

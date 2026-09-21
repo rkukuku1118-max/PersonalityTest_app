@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "validate:data": "node scripts/validate-test-data.mjs",
+    "validate:share": "node scripts/validate-share-url.mjs",
     "dev": "vite --host 127.0.0.1 --port 5173",
     "build": "tsc --noEmit && tsc --project tsconfig.worker.json && vite build",
     "preview": "vite preview --host 127.0.0.1",
