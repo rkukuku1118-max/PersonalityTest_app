@@ -327,16 +327,16 @@ export function AiPromptBuilder({
     <section className="ai-prompt" aria-labelledby="ai-prompt-heading">
       <div className="ai-prompt__intro">
         <span className="ai-prompt__eyebrow">AIでもっと詳しく</span>
-        <h3 id="ai-prompt-heading">診断結果をもっと詳しく見る</h3>
-        <p>知りたいテーマを選ぶと、診断結果を日常の言葉で読み解きます。</p>
+        <h3 id="ai-prompt-heading">診断結果に基づいてAIレポートを作る</h3>
+        <p>知りたいテーマを選ぶと、分析してAIレポートを作れます。</p>
       </div>
 
       <div className="prompt-step">
         <div className="prompt-step__heading">
           <span>1</span>
           <div>
-            <h4>知りたいテーマを選ぶ</h4>
-            <p>今の自分について、詳しく知りたいものを選んでください。</p>
+            <h4>レポートのテーマを選ぶ</h4>
+            <p>詳しく知りたいテーマを選んでください。</p>
           </div>
         </div>
         <div className="prompt-categories" role="radiogroup" aria-label="分析テーマ">
@@ -393,8 +393,8 @@ export function AiPromptBuilder({
               {generationState === "loading"
                 ? "レポートを作成しています…"
                 : generationResult
-                  ? "このテーマで作り直す"
-                  : "このテーマでレポートを作る"}
+                  ? "AIレポートを再生成"
+                  : "AIレポートを生成"}
             </button>
 
             <div className="generation-status" aria-live="polite" aria-busy={generationState === "loading"}>
