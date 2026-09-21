@@ -21,7 +21,7 @@ export function ScoreOverview({ scores }: ScoreOverviewProps) {
       <div className="score-overview__heading">
         <div>
           <span>まずは全体を確認</span>
-          <h3 id="score-overview-heading">あなたの性格５因子のスコア</h3>
+          <h3 id="score-overview-heading">あなたの性格因子のスコア</h3>
           <p>因子ごとの平均です。詳しい内訳は下で確認できます。</p>
         </div>
         <a href="#score-details">詳しい内訳を見る</a>
