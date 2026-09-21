@@ -364,7 +364,7 @@ export function AiPromptBuilder({
         <div className="prompt-step__heading">
           <span>2</span>
           <div>
-            <h4>{supportsGeneration ? "このテーマでレポートを作る" : "取扱説明書を作る準備"}</h4>
+            <h4>{supportsGeneration ? "このテーマでAIレポートを作る" : "取扱説明書を作る準備"}</h4>
             <p>
               {supportsGeneration
                 ? "診断結果を組み合わせて、あなただけのレポートを作ります。"
@@ -493,7 +493,7 @@ export function AiPromptBuilder({
           <>
             <div className="prompt-image-guide">
               <strong>画像は外部のAIサービスを使って作成します</strong>
-              <p>下のボタンで依頼文をコピーし、お使いのchatGPTもしくはGeminiに貼り付けてください。</p>
+              <p>下のボタンで依頼文をコピーし、お使いのChatGPTもしくはGeminiに貼り付けてください。</p>
             </div>
             <button
               type="button"
@@ -519,7 +519,7 @@ export function AiPromptBuilder({
 
       {supportsGeneration ? (
         <p className="ai-prompt__note">
-          「レポートを作る」を押したときだけ、診断スコアを文章生成AIへ送信します。氏名や個々の質問への回答は含まれません。
+          「AIレポートを生成」を押したときだけ、診断スコアを文章生成AIへ送信します。氏名や個々の質問への回答は含まれません。
         </p>
       ) : (
         <p className="ai-prompt__note">

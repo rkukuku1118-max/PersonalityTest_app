@@ -58,29 +58,6 @@
   background: #fff3f1;
 }
 
-.results-header__completion {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: baseline;
-  gap: 5px;
-  color: var(--muted);
-  white-space: nowrap;
-  padding: 16px 18px;
-  border: 1px solid #c8ddd6;
-  border-radius: 16px;
-  background: linear-gradient(145deg, #f4fbf8, #e5f4ef);
-}
-
-.results-header__completion strong {
-  color: var(--teal);
-  font-size: 3rem;
-  line-height: 1;
-}
-
-.results-header__completion span {
-  font-weight: 800;
-}
-
 .score-overview {
   margin-top: 24px;
   padding: 22px;

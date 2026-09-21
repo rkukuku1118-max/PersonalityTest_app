@@ -115,8 +115,6 @@ export function useAssessment() {
         isHistory: false,
         reports: activeHistory?.reports ?? {},
       };
-  const completeDomainCount = resultView.scores.filter((score) => score.answered === score.total).length;
-
   function commitHistory(nextHistory: AssessmentHistoryEntry[], keepInMemoryOnFailure = true) {
     const limitedHistory = nextHistory.slice(0, MAX_HISTORY_ENTRIES);
     const saved = saveAssessmentHistory(limitedHistory);
@@ -289,7 +287,6 @@ export function useAssessment() {
     isComplete,
     scores,
     resultView,
-    completeDomainCount,
     screen,
     history,
     historyError,

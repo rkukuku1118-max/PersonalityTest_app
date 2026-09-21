@@ -12,7 +12,6 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
   const [isAiSectionVisible, setIsAiSectionVisible] = useState(false);
   const {
     resultView,
-    completeDomainCount,
     historyError,
     reviewAnswers,
     resetAssessment,
@@ -49,9 +48,7 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
         <div>
           <span className="status-pill">{isHistory ? "保存済み" : "集計完了"}</span>
           <h2 id="results-heading">{isHistory ? "過去の診断結果" : "診断結果"}</h2>
-          <p>
-            {completedAtLabel && <span className="results-header__date">実施日時: {completedAtLabel}</span>}
-          </p>
+          {completedAtLabel && <p className="results-header__date">実施日時: {completedAtLabel}</p>}
         </div>
       </div>
 
@@ -118,8 +115,8 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
         <button type="button" className="ai-quick-action" onClick={showAiSection}>
           <span aria-hidden="true">✦</span>
           <span>
-            <strong>AIで結果を詳しく見る</strong>
-            <small>テーマを選んで読み解く</small>
+            <strong>AIレポートを作る</strong>
+            <small>テーマを選んで分析する</small>
           </span>
           <i aria-hidden="true">↓</i>
         </button>

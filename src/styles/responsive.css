@@ -228,10 +228,6 @@
     flex-direction: column;
   }
 
-  .results-header__completion {
-    align-self: flex-start;
-  }
-
   .history-card__scores {
     grid-template-columns: 1fr;
   }
