@@ -368,7 +368,7 @@ export function AiPromptBuilder({
             <p>
               {supportsGeneration
                 ? "診断結果を組み合わせて、あなただけのレポートを作ります。"
-                : "画像生成AIに貼り付ける依頼文をコピーします。"}
+                : "AIに貼り付ける画像生成用の依頼文をコピーします。"}
             </p>
           </div>
         </div>
@@ -451,7 +451,7 @@ export function AiPromptBuilder({
                         }).format(new Date(generationResult.generatedAt))}
                       </small>
                     </div>
-                    {!storageError && <span className="generation-result__saved">ローカル保存済み</span>}
+                    {!storageError && <span className="generation-result__saved">ローカルストレージ保存済み</span>}
                   </div>
                   <div className="generation-result__body">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -492,8 +492,8 @@ export function AiPromptBuilder({
         ) : (
           <>
             <div className="prompt-image-guide">
-              <strong>画像は外部の画像生成AIで作成します</strong>
-              <p>下のボタンで依頼文をコピーし、お使いの画像生成AIに貼り付けてください。</p>
+              <strong>画像は外部のAIサービスを使って作成します</strong>
+              <p>下のボタンで依頼文をコピーし、お使いのchatGPTもしくはGeminiに貼り付けてください。</p>
             </div>
             <button
               type="button"
@@ -504,7 +504,7 @@ export function AiPromptBuilder({
               {copyState === "copied" ? "コピーしました" : "画像作成用の依頼文をコピー"}
             </button>
             <p className="prompt-copy-status" aria-live="polite">
-              {copyState === "copied" && "お使いの画像生成AIを開いて、そのまま貼り付けてください。"}
+              {copyState === "copied" && "お使いのAIサービスを開いて、そのまま貼り付けてください。"}
               {copyState === "failed" && "コピーできませんでした。内容を開いて手動でコピーしてください。"}
             </p>
             <details className="prompt-preview prompt-preview--image">
