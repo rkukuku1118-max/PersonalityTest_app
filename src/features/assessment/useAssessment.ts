@@ -151,7 +151,7 @@ export function useAssessment() {
     const nextScores = calculateScores(activeTest, nextAnswers);
     const existingId = attemptHistoryIds[activeTestId];
 
-    if (existingId) {
+    if (existingId && history.some((entry) => entry.id === existingId)) {
       commitHistory(
         history.map((entry) => (entry.id === existingId ? { ...entry, scores: nextScores } : entry)),
       );

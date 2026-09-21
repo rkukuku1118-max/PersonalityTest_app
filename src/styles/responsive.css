@@ -394,7 +394,34 @@
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
+  }
+
+  .view,
+  .generation-status__orbit,
+  .generation-status__spark,
+  .generation-status__loading::after,
+  .generation-status__steps span {
+    animation: none !important;
+  }
+
+  .generation-status__progress span {
+    width: 100%;
+    transform: none;
+    animation: generation-reduced-pulse 1.8s ease-in-out infinite !important;
+  }
+
+  .generation-status__eyebrow i {
+    animation: generation-reduced-pulse 1.8s ease-in-out infinite !important;
+  }
+}
+
+@keyframes generation-reduced-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
   }
 }
