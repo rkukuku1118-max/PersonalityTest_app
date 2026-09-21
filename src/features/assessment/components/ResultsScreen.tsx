@@ -1,12 +1,15 @@
+import { useEffect, useRef, useState } from "react";
 import type { AssessmentController } from "../useAssessment";
 import { AiPromptBuilder } from "./AiPromptBuilder";
-import { DomainScoreCard } from "./ScoreCards";
+import { DomainScoreCard, ScoreOverview } from "./ScoreCards";
 
 type ResultsScreenProps = {
   assessment: AssessmentController;
 };
 
 export function ResultsScreen({ assessment }: ResultsScreenProps) {
+  const aiSectionRef = useRef<HTMLDivElement>(null);
+  const [isAiSectionVisible, setIsAiSectionVisible] = useState(false);
   const {
     resultView,
     completeDomainCount,
@@ -23,6 +26,23 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
       )
     : null;
 
+  useEffect(() => {
+    const aiSection = aiSectionRef.current;
+    if (!aiSection) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setIsAiSectionVisible(entry.isIntersecting),
+      { threshold: 0.08 },
+    );
+    observer.observe(aiSection);
+
+    return () => observer.disconnect();
+  }, [id]);
+
+  const showAiSection = () => {
+    aiSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <section className="view results-view" aria-labelledby="results-heading">
       <div className="results-header">
@@ -30,13 +50,8 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
           <span className="status-pill">{isHistory ? "保存済み" : "集計完了"}</span>
           <h2 id="results-heading">{isHistory ? "過去の診断結果" : "診断結果"}</h2>
           <p>
-            {testLabel}の因子と下位尺度の5段階平均です。
             {completedAtLabel && <span className="results-header__date">実施日時: {completedAtLabel}</span>}
           </p>
-        </div>
-        <div className="results-header__completion" aria-label={`${completeDomainCount}因子を集計`}>
-          <strong>{completeDomainCount}</strong>
-          <span>/ {scores.length} 因子</span>
         </div>
       </div>
 
@@ -46,16 +61,26 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
         </p>
       )}
 
-      <AiPromptBuilder
-        resultId={id}
-        testLabel={testLabel}
-        scores={scores}
-        savedReports={reports}
-        onSaveReport={saveGeneratedReport}
-      />
+      <ScoreOverview scores={scores} />
 
-      <section className="results-list" aria-label="因子と下位尺度のスコア">
-        <h3>因子と下位尺度</h3>
+      <div ref={aiSectionRef} id="ai-analysis">
+        <AiPromptBuilder
+          resultId={id}
+          testLabel={testLabel}
+          scores={scores}
+          savedReports={reports}
+          onSaveReport={saveGeneratedReport}
+        />
+      </div>
+
+      <section className="results-list" id="score-details" aria-labelledby="score-details-heading">
+        <div className="results-list__heading">
+          <div>
+            <span>詳しく確認する</span>
+            <h3 id="score-details-heading">因子と下位尺度</h3>
+          </div>
+          <p>因子をタップすると、下位尺度のスコアが開きます。</p>
+        </div>
         <div className="results-list__grid">
           {scores.map((domain) => (
             <DomainScoreCard key={domain.id} domain={domain} />
@@ -88,6 +113,17 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
       <p className="source-note">
         質問文と採点情報は変換済みJSONを参照しています。心理・医療上の診断ではありません。
       </p>
+
+      {!isAiSectionVisible && Object.keys(reports).length === 0 && (
+        <button type="button" className="ai-quick-action" onClick={showAiSection}>
+          <span aria-hidden="true">✦</span>
+          <span>
+            <strong>AIで結果を詳しく見る</strong>
+            <small>テーマを選んで読み解く</small>
+          </span>
+          <i aria-hidden="true">↓</i>
+        </button>
+      )}
     </section>
   );
 }
