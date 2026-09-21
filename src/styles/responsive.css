@@ -155,33 +155,33 @@
 
   .question-card h2 {
     min-height: auto;
-    margin: 18px 0 7px;
+    margin: 18px 0 20px;
     font-size: 1.18rem;
     line-height: 1.65;
   }
 
-  .question-card__hint {
-    margin-bottom: 18px;
-    font-size: 0.75rem;
-    line-height: 1.55;
-  }
-
-  .answer-option {
-    grid-template-columns: 36px minmax(0, 1fr) 20px;
-    gap: 9px;
+  .answer-scale__option {
     min-height: 64px;
-    padding: 10px 11px;
-    font-size: 0.88rem;
   }
 
-  .answer-option__number {
-    width: 32px;
-    height: 32px;
+  .answer-scale__option--strong .answer-scale__circle {
+    width: 48px;
+    height: 48px;
   }
 
-  .answer-option__indicator {
-    width: 18px;
-    height: 18px;
+  .answer-scale__option--mild .answer-scale__circle {
+    width: 39px;
+    height: 39px;
+  }
+
+  .answer-scale__option--neutral .answer-scale__circle {
+    width: 31px;
+    height: 31px;
+  }
+
+  .answer-scale__labels {
+    margin-top: 2px;
+    font-size: 0.78rem;
   }
 
   .question-navigation {
@@ -263,18 +263,48 @@
   }
 
   .prompt-categories {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 8px;
     margin-top: 14px;
   }
 
   .prompt-category {
-    min-height: 86px;
+    min-height: 102px;
     padding: 13px 40px 13px 13px;
+  }
+
+  .prompt-category:last-child {
+    grid-column: 1 / -1;
+    min-height: 84px;
   }
 
   .prompt-category__topline strong {
     font-size: 0.9rem;
+  }
+
+  .prompt-selected-theme {
+    align-items: flex-start;
+  }
+
+  .prompt-preview summary {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .prompt-preview summary small {
+    display: none;
+  }
+
+  .prompt-preview__footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .prompt-copy-button--secondary {
+    width: 100%;
+  }
+
+  .prompt-preview__footer .prompt-copy-status {
+    text-align: center;
   }
 
   .ai-prompt__note {
@@ -309,6 +339,10 @@
   }
 
   .generation-status__eyebrow {
+    justify-content: center;
+  }
+
+  .generation-status__signal {
     justify-content: center;
   }
 
@@ -373,11 +407,21 @@
     padding: 0 11px;
   }
 
-  .answer-option {
-    grid-template-columns: 32px minmax(0, 1fr) 18px;
+  .answer-scale__option {
+    min-height: 58px;
   }
 
-  .answer-option__number {
+  .answer-scale__option--strong .answer-scale__circle {
+    width: 44px;
+    height: 44px;
+  }
+
+  .answer-scale__option--mild .answer-scale__circle {
+    width: 36px;
+    height: 36px;
+  }
+
+  .answer-scale__option--neutral .answer-scale__circle {
     width: 29px;
     height: 29px;
   }
@@ -399,6 +443,8 @@
   .view,
   .generation-status__orbit,
   .generation-status__spark,
+  .generation-status__node,
+  .generation-status__signal i,
   .generation-status__loading::after,
   .generation-status__steps span {
     animation: none !important;

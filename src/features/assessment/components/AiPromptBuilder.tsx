@@ -236,6 +236,7 @@ export function AiPromptBuilder({
     [category, scores, testLabel],
   );
   const supportsGeneration = isTextReportCategory(category);
+  const selectedCategory = PROMPT_CATEGORIES.find((item) => item.id === category) ?? PROMPT_CATEGORIES[0];
   const savedReport = supportsGeneration ? savedReports[category] : undefined;
 
   useEffect(() => {
@@ -326,8 +327,8 @@ export function AiPromptBuilder({
     <section className="ai-prompt" aria-labelledby="ai-prompt-heading">
       <div className="ai-prompt__intro">
         <span className="ai-prompt__eyebrow">AIでもっと詳しく</span>
-        <h3 id="ai-prompt-heading">診断結果から文章を自動生成</h3>
-        <p>テーマを選ぶと、診断結果に基づく文章をこの画面で生成できます。</p>
+        <h3 id="ai-prompt-heading">診断結果をもっと詳しく見る</h3>
+        <p>知りたいテーマを選ぶと、診断結果を日常の言葉で読み解きます。</p>
       </div>
 
       <div className="prompt-step">
@@ -335,7 +336,7 @@ export function AiPromptBuilder({
           <span>1</span>
           <div>
             <h4>知りたいテーマを選ぶ</h4>
-            <p>タップすると、目的に合ったプロンプトに切り替わります。</p>
+            <p>今の自分について、詳しく知りたいものを選んでください。</p>
           </div>
         </div>
         <div className="prompt-categories" role="radiogroup" aria-label="分析テーマ">
@@ -359,128 +360,172 @@ export function AiPromptBuilder({
         </div>
       </div>
 
-      <div className="prompt-step prompt-step--copy">
+      <div className={`prompt-step prompt-step--action${supportsGeneration ? "" : " prompt-step--image"}`}>
         <div className="prompt-step__heading">
           <span>2</span>
           <div>
-            <h4>プロンプトを確認</h4>
-            <p>全因子・全下位尺度と、選んだテーマに合わせた分析指示が含まれます。</p>
+            <h4>{supportsGeneration ? "このテーマでレポートを作る" : "取扱説明書を作る準備"}</h4>
+            <p>
+              {supportsGeneration
+                ? "診断結果を組み合わせて、あなただけのレポートを作ります。"
+                : "画像生成AIに貼り付ける依頼文をコピーします。"}
+            </p>
           </div>
         </div>
-        <details className="prompt-preview">
-          <summary>プロンプトの内容を確認</summary>
-          <pre>{prompt}</pre>
-        </details>
-        <button
-          type="button"
-          className={`prompt-copy-button${supportsGeneration ? " prompt-copy-button--secondary" : ""}${copyState === "copied" ? " is-copied" : ""}`}
-          onClick={copyPrompt}
-        >
-          <span aria-hidden="true">{copyState === "copied" ? "✓" : "□"}</span>
-          {copyState === "copied" ? "コピーしました" : "プロンプトをコピー"}
-        </button>
-        <p className="prompt-copy-status" aria-live="polite">
-          {copyState === "copied" && "お使いのAIを開いて、そのまま貼り付けてください。"}
-          {copyState === "failed" && "コピーできませんでした。内容を開いて手動でコピーしてください。"}
-        </p>
-        {!supportsGeneration && (
-          <p className="prompt-image-scope-note">
-            画像生成は今回の対象外です。このテーマはプロンプトのコピーのみ利用できます。
-          </p>
+
+        <div className="prompt-selected-theme" aria-label="選択中のテーマ">
+          <span>選択中</span>
+          <div>
+            <strong>{selectedCategory.label}</strong>
+            <small>{selectedCategory.description}</small>
+          </div>
+        </div>
+
+        {supportsGeneration ? (
+          <>
+            <button
+              type="button"
+              className="prompt-generate-button"
+              disabled={generationState === "loading"}
+              onClick={generateReport}
+            >
+              <span aria-hidden="true">✦</span>
+              {generationState === "loading"
+                ? "レポートを作成しています…"
+                : generationResult
+                  ? "このテーマで作り直す"
+                  : "このテーマでレポートを作る"}
+            </button>
+
+            <div className="generation-status" aria-live="polite" aria-busy={generationState === "loading"}>
+              {generationState === "loading" && (
+                <div className="generation-status__loading" role="status">
+                  <div className="generation-status__visual" aria-hidden="true">
+                    <span className="generation-status__orbit generation-status__orbit--outer" />
+                    <span className="generation-status__orbit generation-status__orbit--inner" />
+                    <span className="generation-status__node generation-status__node--one" />
+                    <span className="generation-status__node generation-status__node--two" />
+                    <span className="generation-status__node generation-status__node--three" />
+                    <span className="generation-status__spark">✦</span>
+                  </div>
+                  <div className="generation-status__content">
+                    <span className="generation-status__eyebrow">
+                      <i aria-hidden="true" />
+                      AI ANALYSIS
+                    </span>
+                    <strong>{selectedCategory.label}のレポートを構成しています</strong>
+                    <p>複数のスコアを照らし合わせ、特徴の組み合わせを日常の言葉に変換しています。</p>
+                    <div className="generation-status__signal" aria-hidden="true">
+                      <i /><i /><i /><i /><i /><i /><i />
+                    </div>
+                    <div className="generation-status__progress" aria-hidden="true">
+                      <span />
+                    </div>
+                    <div className="generation-status__steps" aria-hidden="true">
+                      <span>因子を比較</span>
+                      <span>特徴を統合</span>
+                      <span>文章を構成</span>
+                    </div>
+                    <small>この画面を開いたままお待ちください。完了すると自動で表示されます。</small>
+                  </div>
+                </div>
+              )}
+              {generationState === "error" && (
+                <div className="generation-status__error" role="alert">
+                  <p>{generationError}</p>
+                  <button type="button" onClick={generateReport}>
+                    もう一度試す
+                  </button>
+                </div>
+              )}
+              {generationResult && (
+                <article className="generation-result">
+                  <div className="generation-result__header">
+                    <div>
+                      <strong>生成結果</strong>
+                      <small>
+                        作成日時：
+                        {new Intl.DateTimeFormat("ja-JP", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        }).format(new Date(generationResult.generatedAt))}
+                      </small>
+                    </div>
+                    {!storageError && <span className="generation-result__saved">ローカル保存済み</span>}
+                  </div>
+                  <div className="generation-result__body">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {generationResult.content}
+                    </ReactMarkdown>
+                  </div>
+                </article>
+              )}
+              {storageError && (
+                <p className="generation-result__storage-error" role="alert">
+                  {storageError}
+                </p>
+              )}
+            </div>
+
+            <details className="prompt-preview">
+              <summary>
+                <span>詳しいプロンプトを見る</span>
+                <small>外部のAIでも利用できます</small>
+              </summary>
+              <pre>{prompt}</pre>
+              <div className="prompt-preview__footer">
+                <button
+                  type="button"
+                  className={`prompt-copy-button prompt-copy-button--secondary${copyState === "copied" ? " is-copied" : ""}`}
+                  onClick={copyPrompt}
+                >
+                  <span aria-hidden="true">{copyState === "copied" ? "✓" : "□"}</span>
+                  {copyState === "copied" ? "コピーしました" : "プロンプトをコピー"}
+                </button>
+                <p className="prompt-copy-status" aria-live="polite">
+                  {copyState === "copied" && "お使いのAIに、そのまま貼り付けて利用できます。"}
+                  {copyState === "failed" && "コピーできませんでした。上の内容を手動でコピーしてください。"}
+                </p>
+              </div>
+            </details>
+          </>
+        ) : (
+          <>
+            <div className="prompt-image-guide">
+              <strong>画像は外部の画像生成AIで作成します</strong>
+              <p>下のボタンで依頼文をコピーし、お使いの画像生成AIに貼り付けてください。</p>
+            </div>
+            <button
+              type="button"
+              className={`prompt-copy-button${copyState === "copied" ? " is-copied" : ""}`}
+              onClick={copyPrompt}
+            >
+              <span aria-hidden="true">{copyState === "copied" ? "✓" : "□"}</span>
+              {copyState === "copied" ? "コピーしました" : "画像作成用の依頼文をコピー"}
+            </button>
+            <p className="prompt-copy-status" aria-live="polite">
+              {copyState === "copied" && "お使いの画像生成AIを開いて、そのまま貼り付けてください。"}
+              {copyState === "failed" && "コピーできませんでした。内容を開いて手動でコピーしてください。"}
+            </p>
+            <details className="prompt-preview prompt-preview--image">
+              <summary>
+                <span>詳しいプロンプトを見る</span>
+              </summary>
+              <pre>{prompt}</pre>
+            </details>
+          </>
         )}
       </div>
 
-      {supportsGeneration && (
-        <div className="prompt-step prompt-step--generate">
-          <div className="prompt-step__heading">
-            <span>3</span>
-            <div>
-              <h4>診断レポートを生成</h4>
-              <p>Cloudflare Workers AIのGemma 4 26Bを使って、日本語の文章を生成します。</p>
-            </div>
-          </div>
-          <button
-            type="button"
-            className="prompt-generate-button"
-            disabled={generationState === "loading"}
-            onClick={generateReport}
-          >
-            {generationState === "loading"
-              ? "生成しています…"
-              : generationResult
-                ? "レポートを再生成（上書き）"
-                : "無料で文章を生成"}
-          </button>
-
-          <div className="generation-status" aria-live="polite" aria-busy={generationState === "loading"}>
-            {generationState === "loading" && (
-              <div className="generation-status__loading" role="status">
-                <div className="generation-status__visual" aria-hidden="true">
-                  <span className="generation-status__orbit generation-status__orbit--outer" />
-                  <span className="generation-status__orbit generation-status__orbit--inner" />
-                  <span className="generation-status__spark">✦</span>
-                </div>
-                <div className="generation-status__content">
-                  <span className="generation-status__eyebrow">
-                    <i aria-hidden="true" />
-                    AIがレポートを作成中
-                  </span>
-                  <strong>診断結果をじっくり読み解いています</strong>
-                  <p>分析する内容が多いため、完了まで少し時間がかかることがあります。</p>
-                  <div className="generation-status__progress" aria-hidden="true">
-                    <span />
-                  </div>
-                  <div className="generation-status__steps" aria-hidden="true">
-                    <span>回答を分析</span>
-                    <span>レポートを構成</span>
-                    <span>文章を調整</span>
-                  </div>
-                  <small>この画面を開いたままお待ちください。完了すると自動で表示されます。</small>
-                </div>
-              </div>
-            )}
-            {generationState === "error" && (
-              <div className="generation-status__error" role="alert">
-                <p>{generationError}</p>
-                <button type="button" onClick={generateReport}>
-                  もう一度試す
-                </button>
-              </div>
-            )}
-            {generationResult && (
-              <article className="generation-result">
-                <div className="generation-result__header">
-                  <div>
-                    <strong>生成結果</strong>
-                    <small>
-                      {generationResult.model} ・
-                      {new Intl.DateTimeFormat("ja-JP", {
-                        dateStyle: "medium",
-                        timeStyle: "short",
-                      }).format(new Date(generationResult.generatedAt))}
-                    </small>
-                  </div>
-                  {!storageError && <span className="generation-result__saved">ローカル保存済み</span>}
-                </div>
-                <div className="generation-result__body">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {generationResult.content}
-                  </ReactMarkdown>
-                </div>
-              </article>
-            )}
-            {storageError && (
-              <p className="generation-result__storage-error" role="alert">
-                {storageError}
-              </p>
-            )}
-          </div>
-        </div>
+      {supportsGeneration ? (
+        <p className="ai-prompt__note">
+          「レポートを作る」を押したときだけ、診断スコアを文章生成AIへ送信します。氏名や個々の質問への回答は含まれません。
+        </p>
+      ) : (
+        <p className="ai-prompt__note">
+          このアプリから画像生成AIへデータは送信しません。コピー後は、利用するAIサービスのデータ取り扱いをご確認ください。
+        </p>
       )}
-
-      <p className="ai-prompt__note">
-        生成ボタンを押したときだけ、診断結果をCloudflare Workers AIへ送信します。個人を特定できる情報は送信しないでください。Workers Freeプランでは、無料枠の上限に達すると生成に失敗します。
-      </p>
     </section>
   );
 }

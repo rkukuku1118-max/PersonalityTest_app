@@ -25,9 +25,12 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
     resetAssessment,
   } = assessment;
   const progressLabel = Math.round(progress);
+  const answerChoices = activeTest.responseOptions
+    .map((label, index) => ({ label, value: index + 1 }))
+    .reverse();
 
   function confirmReset() {
-    if (answeredCount === 0 || window.confirm("現在の回答をすべて消去しますか？この操作は元に戻せません。")) {
+    if (answeredCount === 0 || window.confirm("最初からやり直しますか？ここまでの回答は消去されます。")) {
       resetAssessment();
     }
   }
@@ -38,7 +41,7 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
         <div className="assessment-status__summary">
           <span className="assessment-status__value">{progressLabel}%</span>
           <span className="assessment-status__label">
-            {answeredCount} / {questionCount} 問回答済み
+            ここまで {answeredCount} / {questionCount} 問
           </span>
         </div>
         <div
@@ -53,45 +56,55 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
         </div>
         <div className="assessment-status__actions">
           <button type="button" className="button button--ghost" onClick={jumpToNextMissing} disabled={isComplete}>
-            次の未回答
+            まだ答えていない質問へ
           </button>
           <button type="button" className="button button--primary" onClick={showResults} disabled={!isComplete}>
-            診断結果を見る
+            結果を見る
           </button>
         </div>
       </section>
 
       <section className="question-card" aria-labelledby="question-heading">
         <div className="question-card__meta">
-          <span className="question-card__count">質問 {questionIndex + 1} / {questionCount}</span>
+          <span className="question-card__count">{questionIndex + 1}問目 / 全{questionCount}問</span>
           <span className="question-card__test">{activeTest.label}</span>
         </div>
         <h2 id="question-heading">{currentQuestion.text}</h2>
-        <p className="question-card__hint">もっとも近いものを1つ選んでください。選択すると次へ進みます。</p>
         <span className="sr-only" aria-live="polite">
           質問 {questionIndex + 1} を表示中
         </span>
 
-        <div className="answer-list" role="radiogroup" aria-label="回答">
-          {activeTest.responseOptions.map((label, index) => {
-            const value = index + 1;
+        <div className="answer-scale">
+          <div
+            className="answer-scale__options"
+            role="radiogroup"
+            aria-label="回答。左ほどあてはまり、右ほどあてはまりません"
+          >
+          {answerChoices.map(({ label, value }) => {
             const selected = answers[currentQuestion.id] === value;
+            const tone = value > 3 ? "agree" : value < 3 ? "disagree" : "neutral";
+            const strength = Math.abs(value - 3) === 2 ? "strong" : Math.abs(value - 3) === 1 ? "mild" : "neutral";
 
             return (
               <button
-                key={label}
+                key={value}
                 type="button"
-                className={selected ? "answer-option is-selected" : "answer-option"}
+                className={`answer-scale__option answer-scale__option--${tone} answer-scale__option--${strength}${selected ? " is-selected" : ""}`}
                 onClick={() => answerCurrentQuestion(value)}
                 role="radio"
                 aria-checked={selected}
+                aria-label={label}
+                title={label}
               >
-                <span className="answer-option__number">{value}</span>
-                <span>{label}</span>
-                <span className="answer-option__indicator" aria-hidden="true" />
+                <span className="answer-scale__circle" aria-hidden="true" />
               </button>
             );
           })}
+          </div>
+          <div className="answer-scale__labels" aria-hidden="true">
+            <span>あてはまる</span>
+            <span>あてはまらない</span>
+          </div>
         </div>
 
         <div className="question-navigation">
@@ -119,8 +132,8 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
 
         <details className="question-overview">
           <summary>
-            <span>質問一覧から移動</span>
-            <small>{answeredCount}問回答済み</small>
+            <span>ほかの質問を見る</span>
+            <small>ここまで {answeredCount}問</small>
           </summary>
           <div className="question-overview__grid" aria-label="質問ナビゲーション">
             {activeTest.questions.map((question, index) => (
@@ -156,7 +169,7 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
               onClick={saveDraft}
               disabled={answeredCount === 0 || (!activeDraftState.isDirty && Boolean(activeDraftState.savedAt))}
             >
-              途中保存
+              ここでひと休み
             </button>
             <p
               className={activeDraftState.error ? "draft-status is-error" : "draft-status"}
@@ -167,13 +180,13 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
                 : activeDraftState.isDirty && activeDraftState.savedAt
                   ? "保存後に変更があります"
                   : activeDraftState.savedAt
-                    ? `保存済み ${new Intl.DateTimeFormat("ja-JP", {
+                    ? `続きから再開できます · ${new Intl.DateTimeFormat("ja-JP", {
                         month: "numeric",
                         day: "numeric",
                         hour: "2-digit",
                         minute: "2-digit",
                       }).format(new Date(activeDraftState.savedAt))}`
-                    : "このブラウザーに回答と再開位置を保存します"}
+                    : "ここまでの回答を、このブラウザーに保存できます"}
             </p>
           </div>
           <button
@@ -182,7 +195,7 @@ export function DiagnosisScreen({ assessment }: DiagnosisScreenProps) {
             onClick={confirmReset}
             disabled={answeredCount === 0}
           >
-            回答をクリア
+            最初からやり直す
           </button>
         </div>
       </section>
