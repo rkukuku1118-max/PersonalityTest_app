@@ -77,10 +77,6 @@ export function formatScore(value: number) {
   return value.toFixed(2);
 }
 
-export function scorePercent(score: number) {
-  return Math.max(0, Math.min(100, (score / 5) * 100));
-}
-
 export function scoreProgress(answered: number, total: number, z?: number) {
   if (answered !== total) return `${answered}/${total}`;
   return normInterpretation(z) ?? "参考値";

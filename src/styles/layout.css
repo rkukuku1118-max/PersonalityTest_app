@@ -190,16 +190,14 @@
   gap: 8px;
 }
 
-.progress-bar,
-.score-bar {
+.progress-bar {
   overflow: hidden;
   height: 10px;
   border-radius: 999px;
   background: #e4ebe7;
 }
 
-.progress-bar span,
-.score-bar span {
+.progress-bar span {
   display: block;
   height: 100%;
   border-radius: inherit;

@@ -83,7 +83,7 @@ export function ShareLinkDialog({ testId, scores, onClose }: ShareLinkDialogProp
 
         <div className="share-dialog__notice">
           <p>
-            このリンクには、あなたの性格因子と下位尺度のスコアが含まれます。質問への回答や氏名は含まれません。
+            このリンクには、あなたの性格因子と、その内訳となる特徴のスコアが含まれます。質問への回答や氏名は含まれません。
           </p>
           <p>親しい人との個人チャットなどでの共有におすすめです。</p>
           <p>

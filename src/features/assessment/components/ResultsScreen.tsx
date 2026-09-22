@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { AssessmentController } from "../useAssessment";
 import { AiPromptBuilder } from "./AiPromptBuilder";
-import { DomainScoreCard, ScoreOverview } from "./ScoreCards";
+import { FactorResults } from "./ScoreCards";
 import { ShareLinkDialog } from "./ShareLinkDialog";
 
 type ResultsScreenProps = {
@@ -122,7 +122,7 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
         </section>
       )}
 
-      <ScoreOverview scores={scores} />
+      <FactorResults key={id} scores={scores} />
 
       <div ref={aiSectionRef} id="ai-analysis">
         <AiPromptBuilder
@@ -134,21 +134,6 @@ export function ResultsScreen({ assessment }: ResultsScreenProps) {
           reportStorage={isShared && !isSharedSaved ? "memory" : "saved"}
         />
       </div>
-
-      <section className="results-list" id="score-details" aria-labelledby="score-details-heading">
-        <div className="results-list__heading">
-          <div>
-            <span>詳しく確認する</span>
-            <h3 id="score-details-heading">因子と下位尺度</h3>
-          </div>
-          <p>因子をタップすると、下位尺度のスコアが開きます。</p>
-        </div>
-        <div className="results-list__grid">
-          {scores.map((domain) => (
-            <DomainScoreCard key={domain.id} domain={domain} />
-          ))}
-        </div>
-      </section>
 
       <div className="results-view__actions">
         {!isSharedResult && (

@@ -1,108 +1,150 @@
+import { useState } from "react";
 import {
   evaluationText,
   evaluationTone,
   formatScore,
-  scorePercent,
-  scoreProgress,
 } from "../scoring";
+import { domainDescription, facetDescription } from "../terminology";
 import type { DomainScore, FacetScore } from "../types";
 
-type DomainScoreCardProps = {
-  domain: DomainScore;
-};
-
-type ScoreOverviewProps = {
+type FactorResultsProps = {
   scores: DomainScore[];
 };
 
-export function ScoreOverview({ scores }: ScoreOverviewProps) {
+type DomainResultProps = {
+  domain: DomainScore;
+  isOpen: boolean;
+  openFacetKey: string | null;
+  onToggle: () => void;
+  onToggleFacet: (facetKey: string) => void;
+};
+
+export function FactorResults({ scores }: FactorResultsProps) {
+  const [openDomainId, setOpenDomainId] = useState<string | null>(null);
+  const [openFacetKey, setOpenFacetKey] = useState<string | null>(null);
+
+  const toggleDomain = (domainId: string) => {
+    setOpenDomainId((current) => (current === domainId ? null : domainId));
+    setOpenFacetKey(null);
+  };
+
+  const toggleFacet = (facetKey: string) => {
+    setOpenFacetKey((current) => (current === facetKey ? null : facetKey));
+  };
+
   return (
-    <section className="score-overview" aria-labelledby="score-overview-heading">
-      <div className="score-overview__heading">
-        <div>
-          <span>まずは全体を確認</span>
-          <h3 id="score-overview-heading">あなたの性格因子のスコア</h3>
-          <p>因子ごとの平均です。詳しい内訳は下で確認できます。</p>
-        </div>
-        <a href="#score-details">詳しい内訳を見る</a>
+    <section className="factor-results" aria-labelledby="factor-results-heading">
+      <div className="factor-results__heading">
+        <span>診断結果</span>
+        <h3 id="factor-results-heading">性格因子パラメータ</h3>
+        <p>因子をタップすると、説明とパラメータの構成要素を確認できます。</p>
       </div>
-
-      <div className="score-overview__grid">
-        {scores.map((domain) => {
-          const complete = domain.answered === domain.total;
-
-          return (
-            <article className="score-overview__item" key={domain.id}>
-              <div className="score-overview__item-header">
-                <strong>{domain.label}</strong>
-                <span>{complete ? formatScore(domain.score) : "--"}<small> / 5</small></span>
-              </div>
-              <ScoreBar score={domain.score} complete={complete} />
-              <small className={`score-overview__evaluation score-overview__evaluation--${evaluationTone(domain.score, domain.z)}`}>
-                {complete ? evaluationText(domain.score, domain.z) : `${domain.answered}/${domain.total}問に回答`}
-              </small>
-            </article>
-          );
-        })}
+      <div className="factor-accordion">
+        {scores.map((domain) => (
+          <DomainResult
+            key={domain.id}
+            domain={domain}
+            isOpen={openDomainId === domain.id}
+            openFacetKey={openFacetKey}
+            onToggle={() => toggleDomain(domain.id)}
+            onToggleFacet={toggleFacet}
+          />
+        ))}
       </div>
     </section>
   );
 }
 
-export function DomainScoreCard({ domain }: DomainScoreCardProps) {
+function DomainResult({
+  domain,
+  isOpen,
+  openFacetKey,
+  onToggle,
+  onToggleFacet,
+}: DomainResultProps) {
   const complete = domain.answered === domain.total;
+  const panelId = `domain-panel-${domain.id}`;
 
   return (
-    <details className="domain-card">
-      <summary className="domain-card__header">
-        <div>
-          <h4>{domain.label}</h4>
-          <span>{scoreProgress(domain.answered, domain.total, domain.z)}</span>
-        </div>
-        <div className="domain-card__summary-score">
-          <strong>{complete ? formatScore(domain.score) : "--"}</strong>
-          <i aria-hidden="true" />
-        </div>
-      </summary>
-      <div className="domain-card__details">
-        <ScoreBar score={domain.score} complete={complete} />
-        <div className="facet-list" aria-label={`${domain.label}の下位尺度`}>
-          {domain.facets.map((facet) => (
-            <FacetScoreRow key={facet.id} facet={facet} />
-          ))}
-        </div>
-      </div>
-    </details>
-  );
-}
-
-function FacetScoreRow({ facet }: { facet: FacetScore }) {
-  const complete = facet.answered === facet.total;
-
-  return (
-    <article className="facet-score">
-      <div className="facet-score__header">
-        <span>{facet.label}</span>
-        <strong>{complete ? formatScore(facet.score) : "--"}</strong>
-      </div>
-      <ScoreBar score={facet.score} complete={complete} />
-      <div className="facet-score__meta">
-        {complete ? (
-          <span className={`score-label score-label--${evaluationTone(facet.score, facet.z)}`}>
-            評価: {evaluationText(facet.score, facet.z)}
+    <article className={`factor-accordion__item${isOpen ? " is-open" : ""}`}>
+      <h4>
+        <button
+          type="button"
+          className="factor-accordion__trigger"
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          onClick={onToggle}
+        >
+          <span className="factor-accordion__label">{domain.label}</span>
+          <span className="factor-accordion__result">
+            <strong>{complete ? `${formatScore(domain.score)}/5` : "--/5"}</strong>
+            <small className={complete ? `result-tone--${evaluationTone(domain.score, domain.z)}` : undefined}>
+              {complete ? evaluationText(domain.score, domain.z) : `${domain.answered}/${domain.total}問`}
+            </small>
           </span>
-        ) : (
-          <small>回答: {facet.answered}/{facet.total}</small>
-        )}
+          <i className="accordion-icon" aria-hidden="true" />
+        </button>
+      </h4>
+      <div className="factor-accordion__panel" id={panelId} hidden={!isOpen}>
+        <p className="factor-accordion__description">{domainDescription(domain.id)}</p>
+        <h5>因子パラメータの構成要素</h5>
+        <div className="facet-accordion">
+          {domain.facets.map((facet) => {
+            const facetKey = `${domain.id}:${facet.id}`;
+
+            return (
+              <FacetResult
+                key={facet.id}
+                domainId={domain.id}
+                facet={facet}
+                isOpen={openFacetKey === facetKey}
+                onToggle={() => onToggleFacet(facetKey)}
+              />
+            );
+          })}
+        </div>
       </div>
     </article>
   );
 }
 
-function ScoreBar({ score, complete }: { score: number; complete: boolean }) {
+function FacetResult({
+  domainId,
+  facet,
+  isOpen,
+  onToggle,
+}: {
+  domainId: string;
+  facet: FacetScore;
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  const complete = facet.answered === facet.total;
+  const panelId = `facet-panel-${domainId}-${facet.id}`;
+
   return (
-    <div className="score-bar" aria-hidden="true">
-      <span style={{ width: `${complete ? scorePercent(score) : 0}%` }} />
-    </div>
+    <article className={`facet-accordion__item${isOpen ? " is-open" : ""}`}>
+      <h6>
+        <button
+          type="button"
+          className="facet-accordion__trigger"
+          aria-expanded={isOpen}
+          aria-controls={panelId}
+          onClick={onToggle}
+        >
+          <span>{facet.label}</span>
+          <span className="facet-accordion__result">
+            <strong>{complete ? `${formatScore(facet.score)}/5` : "--/5"}</strong>
+            <small className={complete ? `result-tone--${evaluationTone(facet.score, facet.z)}` : undefined}>
+              {complete ? evaluationText(facet.score, facet.z) : `${facet.answered}/${facet.total}問`}
+            </small>
+          </span>
+          <i className="accordion-icon accordion-icon--small" aria-hidden="true" />
+        </button>
+      </h6>
+      <div className="facet-accordion__panel" id={panelId} hidden={!isOpen}>
+        <p>{facetDescription(facet.id)}</p>
+      </div>
+    </article>
   );
 }
